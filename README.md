@@ -30,17 +30,21 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 
 ### Fase 2 - Autenticacao
 
-- [ ] Registro de usuario
-- [ ] Login com email e senha
-- [ ] Endpoint protegido `GET /api/me`
+- [x] Registro de usuario (`POST /api/register`)
+- [x] Login com email e senha (`POST /api/login`)
+- [x] Endpoint protegido `GET /api/me`
+- [x] Validacao de aceite de termos no registro (`accepted_terms`)
+- [x] Campo `accepted_terms_at` no usuario
 
 ### Fase 3 - Wallet, mercado e trade
 
-- [ ] `GET /api/wallet`
-- [ ] `GET /api/market/btc`
-- [ ] `POST /api/trade/buy`
-- [ ] `POST /api/trade/sell`
-- [ ] `GET /api/transactions`
+- [x] `GET /api/wallet`
+- [x] `GET /api/market/btc`
+- [x] `POST /api/trade/buy`
+- [x] `POST /api/trade/sell`
+- [x] `GET /api/transactions`
+- [x] Migrations `wallets` e `transactions` com `decimal(16,8)`
+- [x] Compra/venda com transacao atomica e lock de concorrencia (`lockForUpdate`)
 
 ## Como executar o backend
 
@@ -142,23 +146,11 @@ Esse script limpa caches seguros (`config`, `route`, `view`) e regenera a docume
 - Operacoes de compra/venda devem usar `DB::transaction()`.
 - Proteger saldo contra concorrencia com lock (`lockForUpdate` ou lock atomico).
 - Organizar regras de negocio em Services para manter Controllers enxutos.
+- Aplicar compliance LGPD no ciclo de vida de usuario (termos e prunable data).
 
 ## Estrategia de testes
 
 Objetivo: validar primeiro o comportamento critico de negocio antes da interface.
-
-### Cobertura inicial (Fase 1)
-
-- health check da aplicacao (`GET /`)
-- acesso nao autenticado ao endpoint protegido padrao (`GET /api/user`)
-
-### Cobertura planejada (proximas fases)
-
-- autenticacao: registro, login, token invalido, endpoint `me`
-- wallet: saldo inicial no primeiro acesso
-- trade buy/sell: validacoes de saldo, conversao, atualizacao atomica
-- transacoes: persistencia e ordenacao por data
-- concorrencia: evitar double spending em requisicoes simultaneas
 
 ### Executar testes
 
@@ -167,27 +159,7 @@ cd backend
 ./vendor/bin/sail test
 ```
 
-## Criterios de avaliacao do teste
+## Governanca da entrega
 
-- Backend: 40%
-- Regras de negocio: 25%
-- Mobile: 20%
-- Codigo e organizacao: 10%
-- Extras: 5%
-
-## Diferenciais planejados
-
-- Cache de preco de mercado com Redis
-- Testes automatizados de regras de negocio
-- Controle de concorrencia em trade
-- Ambiente reproduzivel com Docker
-
-## Protocolo pre-commit
-
-Antes de cada commit, executar obrigatoriamente:
-
-1. Atualizar o `README.md` com o estado real da implementacao.
-2. Atualizar `technical_notes.md` com decisoes tecnicas, motivacoes e trade-offs da iteracao.
-3. Atualizar `pre_commit.md` com checklist e status da iteracao.
-4. Rodar testes relevantes do backend.
-5. Garantir que os exemplos de request/response estejam coerentes com as rotas reais.
+- Notas tecnicas detalhadas para entrevista: `technical_notes.md`
+- Checklist operacional pre-commit: `pre_commit.md`
