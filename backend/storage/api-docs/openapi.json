@@ -1,0 +1,45 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Crypto Exchange API",
+        "description": "API para autenticacao, carteira, mercado e trade.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Servidor local"
+        }
+    ],
+    "paths": {
+        "/up": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check da aplicacao",
+                "operationId": "013eaa0511ec2d136af2379c33f145a1",
+                "responses": {
+                    "200": {
+                        "description": "Aplicacao em execucao"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "Token",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Health",
+            "description": "Health"
+        }
+    ]
+}
