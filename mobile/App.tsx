@@ -1,8 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { api } from './src/services/api';
 
 export default function App() {
   return (
@@ -22,10 +23,37 @@ const RootScreen = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState(false);
+  const [wallet, setWallet] = useState<{ balance_brl: string; balance_btc: string } | null>(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletError, setWalletError] = useState<string | null>(null);
   const modeTitle = useMemo(
     () => (mode === 'login' ? 'Entrar na conta' : 'Criar nova conta'),
     [mode]
   );
+
+  const loadWallet = async () => {
+    if (!isAuthenticated) {
+      setWallet(null);
+      setWalletError(null);
+      return;
+    }
+
+    try {
+      setWalletLoading(true);
+      setWalletError(null);
+      const response = await api.get('/wallet');
+      setWallet(response.data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nao foi possivel carregar a carteira.';
+      setWalletError(message);
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadWallet();
+  }, [isAuthenticated]);
 
   if (isLoading) {
     return (
@@ -95,10 +123,34 @@ const RootScreen = () => {
       {isAuthenticated ? (
         <>
           <Text style={styles.subtitle}>Sessao autenticada com Sanctum.</Text>
+          <View style={styles.walletCard}>
+            <Text style={styles.walletTitle}>Saldo da Wallet</Text>
+
+            {walletLoading ? (
+              <View style={styles.walletLoadingRow}>
+                <ActivityIndicator />
+                <Text style={styles.walletMetaText}>Carregando saldos...</Text>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.walletValue}>BRL: {wallet?.balance_brl ?? '--'}</Text>
+                <Text style={styles.walletValue}>BTC: {wallet?.balance_btc ?? '--'}</Text>
+              </>
+            )}
+
+            {walletError ? <Text style={styles.errorText}>{walletError}</Text> : null}
+          </View>
+
+          <View style={styles.authButtonsRow}>
+            <Pressable style={styles.buttonSecondary} onPress={() => void loadWallet()} disabled={walletLoading}>
+              <Text style={styles.buttonSecondaryText}>Atualizar saldo</Text>
+            </Pressable>
+            <Pressable style={styles.button} onPress={() => void signOut()}>
+              <Text style={styles.buttonText}>Sair</Text>
+            </Pressable>
+          </View>
+
           <Text style={styles.tokenText}>Token: {token ?? 'nenhum'}</Text>
-          <Pressable style={styles.button} onPress={() => void signOut()}>
-            <Text style={styles.buttonText}>Sair</Text>
-          </Pressable>
         </>
       ) : (
         <View style={styles.form}>
@@ -232,6 +284,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
   },
+  walletCard: {
+    width: '100%',
+    maxWidth: 380,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    padding: 12,
+    gap: 6,
+  },
+  walletTitle: {
+    fontWeight: '700',
+    color: '#111827',
+  },
+  walletValue: {
+    fontSize: 15,
+    color: '#111827',
+  },
+  walletLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  walletMetaText: {
+    color: '#4b5563',
+  },
+  authButtonsRow: {
+    width: '100%',
+    maxWidth: 380,
+    flexDirection: 'row',
+    gap: 10,
+  },
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -255,13 +338,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   button: {
+    flex: 1,
     backgroundColor: '#111827',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonSecondary: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#111827',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
+    fontWeight: '600',
+  },
+  buttonSecondaryText: {
+    color: '#111827',
     fontWeight: '600',
   },
 });

@@ -54,6 +54,7 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 - [x] Dependencia `@react-native-async-storage/async-storage` adicionada ao app mobile
 - [x] Telas de login/registro com validacao simples
 - [x] Tratamento de erros de rede (`401/422`) com feedback ao usuario
+- [x] Consumo do endpoint `GET /wallet` no estado autenticado
 - [x] Correcao da ordem de hooks no `RootScreen` (erro "Rendered more hooks than during the previous render")
 - [ ] Dashboard com carteira + preco BTC
 - [ ] Tela de trade (buy/sell)
