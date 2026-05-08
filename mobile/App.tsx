@@ -5,6 +5,8 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { api } from './src/services/api';
 
+const BTC_POLLING_INTERVAL_MS = 15000;
+
 export default function App() {
   return (
     <AuthProvider>
@@ -26,6 +28,9 @@ const RootScreen = () => {
   const [wallet, setWallet] = useState<{ balance_brl: string; balance_btc: string } | null>(null);
   const [walletLoading, setWalletLoading] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
+  const [marketPrice, setMarketPrice] = useState<{ symbol: string; price: string; currency: string } | null>(null);
+  const [marketLoading, setMarketLoading] = useState(false);
+  const [marketError, setMarketError] = useState<string | null>(null);
   const modeTitle = useMemo(
     () => (mode === 'login' ? 'Entrar na conta' : 'Criar nova conta'),
     [mode]
@@ -53,6 +58,48 @@ const RootScreen = () => {
 
   useEffect(() => {
     void loadWallet();
+  }, [isAuthenticated]);
+
+  const loadMarketPrice = async (showLoader = true) => {
+    if (!isAuthenticated) {
+      setMarketPrice(null);
+      setMarketError(null);
+      return;
+    }
+
+    try {
+      if (showLoader) {
+        setMarketLoading(true);
+      }
+      setMarketError(null);
+      const response = await api.get('/market/btc');
+      setMarketPrice(response.data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nao foi possivel carregar a cotacao.';
+      setMarketError(message);
+    } finally {
+      if (showLoader) {
+        setMarketLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setMarketPrice(null);
+      setMarketError(null);
+      return;
+    }
+
+    void loadMarketPrice(true);
+
+    const intervalId = setInterval(() => {
+      void loadMarketPrice(false);
+    }, BTC_POLLING_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [isAuthenticated]);
 
   if (isLoading) {
@@ -139,6 +186,27 @@ const RootScreen = () => {
             )}
 
             {walletError ? <Text style={styles.errorText}>{walletError}</Text> : null}
+          </View>
+
+          <View style={styles.walletCard}>
+            <Text style={styles.walletTitle}>Mercado BTC</Text>
+
+            {marketLoading ? (
+              <View style={styles.walletLoadingRow}>
+                <ActivityIndicator />
+                <Text style={styles.walletMetaText}>Carregando cotacao...</Text>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.walletValue}>Par: {marketPrice?.symbol ?? '--'}</Text>
+                <Text style={styles.walletValue}>
+                  Preco: {marketPrice?.price ?? '--'} {marketPrice?.currency ?? ''}
+                </Text>
+                <Text style={styles.walletMetaText}>Atualizacao automatica a cada 15s.</Text>
+              </>
+            )}
+
+            {marketError ? <Text style={styles.errorText}>{marketError}</Text> : null}
           </View>
 
           <View style={styles.authButtonsRow}>
