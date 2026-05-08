@@ -53,7 +53,7 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('market:btc:price', '250000.00000000', now()->addMinute());
+        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/buy', [
@@ -70,7 +70,7 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('market:btc:price', '250000.00000000', now()->addMinute());
+        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/buy', [
@@ -101,7 +101,7 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.02000000',
         ]);
 
-        Cache::put('market:btc:price', '250000.00000000', now()->addMinute());
+        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/sell', [
@@ -132,7 +132,7 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.00100000',
         ]);
 
-        Cache::put('market:btc:price', '250000.00000000', now()->addMinute());
+        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/sell', [
@@ -149,7 +149,7 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('market:btc:price', '250000.00000000', now()->addMinute());
+        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/buy', [

@@ -140,17 +140,6 @@ Se o Swagger/Scalar mostrar erro de spec nao encontrado, rode:
 
 Esse script limpa caches seguros (`config`, `route`, `view`) e regenera a documentacao OpenAPI.
 
-## Diretrizes tecnicas
-
-- Usar `decimal` no banco para valores monetarios e BTC; nunca `float`.
-- Operacoes de compra/venda devem usar `DB::transaction()`.
-- Proteger saldo contra concorrencia com lock (`lockForUpdate` ou lock atomico).
-- Organizar regras de negocio em Services para manter Controllers enxutos.
-- Aplicar compliance LGPD no ciclo de vida de usuario (termos e prunable data).
-
-## Estrategia de testes
-
-Objetivo: validar primeiro o comportamento critico de negocio antes da interface.
 
 ### Executar testes
 
@@ -159,7 +148,3 @@ cd backend
 ./vendor/bin/sail test
 ```
 
-## Governanca da entrega
-
-- Notas tecnicas detalhadas para entrevista: `technical_notes.md`
-- Checklist operacional pre-commit: `pre_commit.md`
