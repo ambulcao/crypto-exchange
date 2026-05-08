@@ -22,6 +22,10 @@ const RootScreen = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState(false);
+  const modeTitle = useMemo(
+    () => (mode === 'login' ? 'Entrar na conta' : 'Criar nova conta'),
+    [mode]
+  );
 
   if (isLoading) {
     return (
@@ -83,11 +87,6 @@ const RootScreen = () => {
       setLoadingAction(false);
     }
   };
-
-  const modeTitle = useMemo(
-    () => (mode === 'login' ? 'Entrar na conta' : 'Criar nova conta'),
-    [mode]
-  );
 
   return (
     <View style={styles.container}>
