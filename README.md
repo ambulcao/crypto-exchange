@@ -63,7 +63,7 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 - [x] Correcao da ordem de hooks no `RootScreen` (erro "Rendered more hooks than during the previous render")
 - [x] Dashboard com carteira + preco BTC
 - [x] Tela de trade (buy/sell)
-- [ ] Tela de historico
+- [x] Tela de historico (`GET /transactions`) com refresh manual
 
 ## Como executar o backend
 

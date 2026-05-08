@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { api } from './src/services/api';
@@ -37,6 +37,9 @@ const RootScreen = () => {
   const [tradeLoading, setTradeLoading] = useState<'buy' | 'sell' | null>(null);
   const [tradeFeedback, setTradeFeedback] = useState<string | null>(null);
   const [tradeError, setTradeError] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  const [transactionsError, setTransactionsError] = useState<string | null>(null);
   const modeTitle = useMemo(
     () => (mode === 'login' ? 'Entrar na conta' : 'Criar nova conta'),
     [mode]
@@ -90,6 +93,30 @@ const RootScreen = () => {
     }
   };
 
+  const loadTransactions = async (showLoader = true) => {
+    if (!isAuthenticated) {
+      setTransactions([]);
+      setTransactionsError(null);
+      return;
+    }
+
+    try {
+      if (showLoader) {
+        setTransactionsLoading(true);
+      }
+      setTransactionsError(null);
+      const response = await api.get<TransactionItem[]>('/transactions');
+      setTransactions(response.data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nao foi possivel carregar o historico.';
+      setTransactionsError(message);
+    } finally {
+      if (showLoader) {
+        setTransactionsLoading(false);
+      }
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       setMarketPrice(null);
@@ -102,6 +129,7 @@ const RootScreen = () => {
     }
 
     void loadMarketPrice(true);
+    void loadTransactions(true);
 
     const intervalId = setInterval(() => {
       void loadMarketPrice(false);
@@ -145,7 +173,7 @@ const RootScreen = () => {
       setTradeFeedback(successMessage);
       Alert.alert('Compra confirmada', successMessage);
       setBuyAmountBrl('');
-      await Promise.all([loadWallet(), loadMarketPrice(false)]);
+      await Promise.all([loadWallet(), loadMarketPrice(false), loadTransactions(false)]);
     } catch (error) {
       setTradeError(mapApiError(error, 'Falha ao comprar BTC.'));
     } finally {
@@ -174,7 +202,7 @@ const RootScreen = () => {
       setTradeFeedback(successMessage);
       Alert.alert('Venda confirmada', successMessage);
       setSellAmountBtc('');
-      await Promise.all([loadWallet(), loadMarketPrice(false)]);
+      await Promise.all([loadWallet(), loadMarketPrice(false), loadTransactions(false)]);
     } catch (error) {
       setTradeError(mapApiError(error, 'Falha ao vender BTC.'));
     } finally {
@@ -244,7 +272,7 @@ const RootScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Crypto Exchange</Text>
 
       {isAuthenticated ? (
@@ -342,9 +370,45 @@ const RootScreen = () => {
             {tradeError ? <Text style={styles.errorText}>{tradeError}</Text> : null}
           </View>
 
+          <View style={styles.walletCard}>
+            <Text style={styles.walletTitle}>Historico de transacoes</Text>
+
+            {transactionsLoading ? (
+              <View style={styles.walletLoadingRow}>
+                <ActivityIndicator />
+                <Text style={styles.walletMetaText}>Carregando historico...</Text>
+              </View>
+            ) : transactions.length === 0 ? (
+              <Text style={styles.walletMetaText}>Nenhuma transacao registrada ainda.</Text>
+            ) : (
+              <View style={styles.transactionsList}>
+                {transactions.slice(0, 8).map((item) => (
+                  <View key={item.id} style={styles.transactionItem}>
+                    <Text style={styles.transactionType}>{item.type.toUpperCase()}</Text>
+                    <Text style={styles.walletMetaText}>
+                      BRL: {item.amount_brl} | BTC: {item.amount_btc}
+                    </Text>
+                    <Text style={styles.walletMetaText}>
+                      Preco BTC: {item.btc_price} | {formatExecutedAt(item.executed_at)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {transactionsError ? <Text style={styles.errorText}>{transactionsError}</Text> : null}
+          </View>
+
           <View style={styles.authButtonsRow}>
             <Pressable style={styles.buttonSecondary} onPress={() => void loadWallet()} disabled={walletLoading}>
               <Text style={styles.buttonSecondaryText}>Atualizar saldo</Text>
+            </Pressable>
+            <Pressable
+              style={styles.buttonSecondary}
+              onPress={() => void loadTransactions(true)}
+              disabled={transactionsLoading}
+            >
+              <Text style={styles.buttonSecondaryText}>Atualizar historico</Text>
             </Pressable>
             <Pressable style={styles.button} onPress={() => void signOut()}>
               <Text style={styles.buttonText}>Sair</Text>
@@ -427,7 +491,7 @@ const RootScreen = () => {
       )}
 
       <StatusBar style="auto" />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -514,6 +578,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 380,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
   },
   tradeRow: {
@@ -578,6 +643,20 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.5,
   },
+  transactionsList: {
+    gap: 8,
+  },
+  transactionItem: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    padding: 8,
+    gap: 2,
+  },
+  transactionType: {
+    fontWeight: '700',
+    color: '#111827',
+  },
 });
 
 const mapApiError = (error: unknown, fallback: string) => {
@@ -592,4 +671,23 @@ const mapApiError = (error: unknown, fallback: string) => {
     )[0]?.[0];
 
   return message ?? fallback;
+};
+
+type TransactionItem = {
+  id: number;
+  type: 'buy' | 'sell';
+  amount_brl: string;
+  amount_btc: string;
+  btc_price: string;
+  executed_at: string;
+};
+
+const formatExecutedAt = (iso: string) => {
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) {
+    return iso;
+  }
+
+  return date.toLocaleString();
 };
