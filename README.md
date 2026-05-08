@@ -56,9 +56,13 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 - [x] Tratamento de erros de rede (`401/422`) com feedback ao usuario
 - [x] Consumo do endpoint `GET /wallet` no estado autenticado
 - [x] Polling de `GET /market/btc` (15s) para atualizar cotacao fake do Redis
+- [x] Formulario de negociacao com inputs de compra (BRL) e venda (BTC)
+- [x] Bloqueio do botao "Comprar" quando valor > saldo BRL
+- [x] Bloqueio do botao "Vender" quando valor > saldo BTC
+- [x] Feedback visual de sucesso apos confirmacao do backend (alerta + mensagem em tela)
 - [x] Correcao da ordem de hooks no `RootScreen` (erro "Rendered more hooks than during the previous render")
 - [x] Dashboard com carteira + preco BTC
-- [ ] Tela de trade (buy/sell)
+- [x] Tela de trade (buy/sell)
 - [ ] Tela de historico
 
 ## Como executar o backend

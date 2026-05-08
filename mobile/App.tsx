@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
+import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { api } from './src/services/api';
@@ -31,6 +32,11 @@ const RootScreen = () => {
   const [marketPrice, setMarketPrice] = useState<{ symbol: string; price: string; currency: string } | null>(null);
   const [marketLoading, setMarketLoading] = useState(false);
   const [marketError, setMarketError] = useState<string | null>(null);
+  const [buyAmountBrl, setBuyAmountBrl] = useState('');
+  const [sellAmountBtc, setSellAmountBtc] = useState('');
+  const [tradeLoading, setTradeLoading] = useState<'buy' | 'sell' | null>(null);
+  const [tradeFeedback, setTradeFeedback] = useState<string | null>(null);
+  const [tradeError, setTradeError] = useState<string | null>(null);
   const modeTitle = useMemo(
     () => (mode === 'login' ? 'Entrar na conta' : 'Criar nova conta'),
     [mode]
@@ -88,6 +94,10 @@ const RootScreen = () => {
     if (!isAuthenticated) {
       setMarketPrice(null);
       setMarketError(null);
+      setBuyAmountBrl('');
+      setSellAmountBtc('');
+      setTradeFeedback(null);
+      setTradeError(null);
       return;
     }
 
@@ -101,6 +111,76 @@ const RootScreen = () => {
       clearInterval(intervalId);
     };
   }, [isAuthenticated]);
+
+  const isPositiveAmount = (value: string) => /^\d+(\.\d{1,8})?$/.test(value) && Number(value) > 0;
+  const normalizedBuyAmount = buyAmountBrl.trim().replace(',', '.');
+  const normalizedSellAmount = sellAmountBtc.trim().replace(',', '.');
+  const availableBrl = Number(wallet?.balance_brl ?? '0');
+  const availableBtc = Number(wallet?.balance_btc ?? '0');
+  const isBuyAmountValid = isPositiveAmount(normalizedBuyAmount);
+  const isSellAmountValid = isPositiveAmount(normalizedSellAmount);
+  const buyExceedsBalance = isBuyAmountValid && Number(normalizedBuyAmount) > availableBrl;
+  const sellExceedsBalance = isSellAmountValid && Number(normalizedSellAmount) > availableBtc;
+  const canBuy = tradeLoading === null && isBuyAmountValid && !buyExceedsBalance;
+  const canSell = tradeLoading === null && isSellAmountValid && !sellExceedsBalance;
+
+  const onBuy = async () => {
+    const amount = normalizedBuyAmount;
+    setTradeFeedback(null);
+    setTradeError(null);
+
+    if (!isPositiveAmount(amount)) {
+      setTradeError('Informe um valor BRL valido (ate 8 casas decimais).');
+      return;
+    }
+    if (Number(amount) > availableBrl) {
+      setTradeError('Valor de compra maior que saldo BRL disponivel.');
+      return;
+    }
+
+    try {
+      setTradeLoading('buy');
+      const response = await api.post('/trade/buy', { amount_brl: amount });
+      const successMessage = response.data?.message ?? 'Compra realizada com sucesso.';
+      setTradeFeedback(successMessage);
+      Alert.alert('Compra confirmada', successMessage);
+      setBuyAmountBrl('');
+      await Promise.all([loadWallet(), loadMarketPrice(false)]);
+    } catch (error) {
+      setTradeError(mapApiError(error, 'Falha ao comprar BTC.'));
+    } finally {
+      setTradeLoading(null);
+    }
+  };
+
+  const onSell = async () => {
+    const amount = normalizedSellAmount;
+    setTradeFeedback(null);
+    setTradeError(null);
+
+    if (!isPositiveAmount(amount)) {
+      setTradeError('Informe um valor BTC valido (ate 8 casas decimais).');
+      return;
+    }
+    if (Number(amount) > availableBtc) {
+      setTradeError('Valor de venda maior que saldo BTC disponivel.');
+      return;
+    }
+
+    try {
+      setTradeLoading('sell');
+      const response = await api.post('/trade/sell', { amount_btc: amount });
+      const successMessage = response.data?.message ?? 'Venda realizada com sucesso.';
+      setTradeFeedback(successMessage);
+      Alert.alert('Venda confirmada', successMessage);
+      setSellAmountBtc('');
+      await Promise.all([loadWallet(), loadMarketPrice(false)]);
+    } catch (error) {
+      setTradeError(mapApiError(error, 'Falha ao vender BTC.'));
+    } finally {
+      setTradeLoading(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -207,6 +287,59 @@ const RootScreen = () => {
             )}
 
             {marketError ? <Text style={styles.errorText}>{marketError}</Text> : null}
+          </View>
+
+          <View style={styles.walletCard}>
+            <Text style={styles.walletTitle}>Negociacao</Text>
+
+            <Text style={styles.walletMetaText}>Compra (BRL)</Text>
+            <View style={styles.tradeRow}>
+              <TextInput
+                style={[styles.input, styles.tradeInput]}
+                value={buyAmountBrl}
+                onChangeText={setBuyAmountBrl}
+                placeholder="Ex: 2500.00000000"
+                keyboardType="decimal-pad"
+              />
+              <Pressable
+                style={[styles.button, !canBuy && styles.buttonDisabled]}
+                onPress={() => void onBuy()}
+                disabled={!canBuy}
+              >
+                {tradeLoading === 'buy' ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Comprar</Text>
+                )}
+              </Pressable>
+            </View>
+            {buyExceedsBalance ? <Text style={styles.errorText}>Valor maior que o saldo BRL disponivel.</Text> : null}
+
+            <Text style={styles.walletMetaText}>Venda (BTC)</Text>
+            <View style={styles.tradeRow}>
+              <TextInput
+                style={[styles.input, styles.tradeInput]}
+                value={sellAmountBtc}
+                onChangeText={setSellAmountBtc}
+                placeholder="Ex: 0.01000000"
+                keyboardType="decimal-pad"
+              />
+              <Pressable
+                style={[styles.buttonSecondary, !canSell && styles.buttonDisabled]}
+                onPress={() => void onSell()}
+                disabled={!canSell}
+              >
+                {tradeLoading === 'sell' ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text style={styles.buttonSecondaryText}>Vender</Text>
+                )}
+              </Pressable>
+            </View>
+            {sellExceedsBalance ? <Text style={styles.errorText}>Valor maior que o saldo BTC disponivel.</Text> : null}
+
+            {tradeFeedback ? <Text style={styles.successText}>{tradeFeedback}</Text> : null}
+            {tradeError ? <Text style={styles.errorText}>{tradeError}</Text> : null}
           </View>
 
           <View style={styles.authButtonsRow}>
@@ -383,6 +516,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
+  tradeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  tradeInput: {
+    flex: 2,
+  },
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -403,6 +544,10 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#b91c1c',
+    fontSize: 13,
+  },
+  successText: {
+    color: '#166534',
     fontSize: 13,
   },
   button: {
@@ -430,4 +575,21 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontWeight: '600',
   },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
 });
+
+const mapApiError = (error: unknown, fallback: string) => {
+  if (!axios.isAxiosError(error)) {
+    return fallback;
+  }
+
+  const message =
+    (error.response?.data as { message?: string; errors?: Record<string, string[]> } | undefined)?.message ??
+    Object.values(
+      (error.response?.data as { errors?: Record<string, string[]> } | undefined)?.errors ?? {}
+    )[0]?.[0];
+
+  return message ?? fallback;
+};
