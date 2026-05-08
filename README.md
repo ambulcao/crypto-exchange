@@ -190,6 +190,24 @@ Comando unico na raiz (backend + mobile):
 ./scripts/dev.sh
 ```
 
+## Configuracao da API no mobile (Axios)
+
+O app mobile usa um cliente Axios central em `mobile/src/services/api.ts`.
+
+- URL via ambiente: `EXPO_PUBLIC_API_URL`
+- Fallback padrao:
+  - Android emulator: `http://10.0.2.2/api`
+  - iOS simulator/Web: `http://127.0.0.1/api`
+
+Para dispositivo fisico, configure o IP da sua maquina:
+
+```bash
+cd mobile
+cp .env.example .env
+# ajuste EXPO_PUBLIC_API_URL para o IP local, exemplo:
+# EXPO_PUBLIC_API_URL=http://192.168.0.10/api
+```
+
 Atalhos uteis no Expo:
 
 - `a` para Android
