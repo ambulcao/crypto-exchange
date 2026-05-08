@@ -50,7 +50,9 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 
 - [x] Estrutura monorepo com `backend/` e `mobile/`
 - [x] Projeto Expo TypeScript criado em `mobile/`
-- [ ] Telas de login/registro
+- [x] AuthContext com persistencia de token via AsyncStorage
+- [x] Telas de login/registro com validacao simples
+- [x] Tratamento de erros de rede (`401/422`) com feedback ao usuario
 - [ ] Dashboard com carteira + preco BTC
 - [ ] Tela de trade (buy/sell)
 - [ ] Tela de historico
