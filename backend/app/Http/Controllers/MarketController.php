@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\MarketPriceService;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Attributes as OA;
 
 class MarketController extends Controller
 {
@@ -11,6 +12,15 @@ class MarketController extends Controller
     {
     }
 
+    #[OA\Get(
+        path: '/api/market/btc',
+        summary: 'Retorna preco atual fake do BTC',
+        tags: ['Market']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Preco atual retornado com sucesso'
+    )]
     public function btc(): JsonResponse
     {
         return response()->json([

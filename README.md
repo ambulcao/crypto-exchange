@@ -16,7 +16,7 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 ## Stack do projeto
 
 - Backend: Laravel 13, Sanctum, MySQL, Redis, Docker (Sail)
-- Mobile: React Native (Expo) - em desenvolvimento
+- Mobile: React Native (Expo) em `mobile/`
 - Testes: PHPUnit (Feature e Unit)
 
 ## Status de implementacao
@@ -46,6 +46,15 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 - [x] Migrations `wallets` e `transactions` com `decimal(16,8)`
 - [x] Compra/venda com transacao atomica e lock de concorrencia (`lockForUpdate`)
 
+### Fase 4 - Mobile e integracao
+
+- [x] Estrutura monorepo com `backend/` e `mobile/`
+- [x] Projeto Expo TypeScript criado em `mobile/`
+- [ ] Telas de login/registro
+- [ ] Dashboard com carteira + preco BTC
+- [ ] Tela de trade (buy/sell)
+- [ ] Tela de historico
+
 ## Como executar o backend
 
 Prerequisitos:
@@ -67,10 +76,28 @@ cd backend
 ./vendor/bin/sail up -d
 ```
 
+Alternativa direta com Docker Compose:
+
+```bash
+docker compose up -d
+```
+
 3. Instalar scaffold de API (se ainda nao tiver feito):
 
 ```bash
 ./vendor/bin/sail artisan install:api
+```
+
+Aplicar migrations:
+
+```bash
+./vendor/bin/sail artisan migrate
+```
+
+Alternativa com Docker Compose:
+
+```bash
+docker compose exec laravel.test php artisan migrate
 ```
 
 4. Consultar rotas:
@@ -112,6 +139,7 @@ ou
 ```text
 crypto-exchange/
   backend/               # API Laravel
+  mobile/                # App React Native (Expo)
   README.md              # Documento principal do projeto
 ```
 
@@ -126,6 +154,7 @@ crypto-exchange/
 Na raiz do projeto:
 
 ```bash
+./scripts/dev.sh      # sobe backend e inicia mobile (monorepo)
 ./scripts/up.sh       # sobe servicos e gera OpenAPI
 ./scripts/down.sh     # derruba servicos
 ./scripts/rebuild.sh  # rebuild completo + migrate + OpenAPI
@@ -147,4 +176,23 @@ Esse script limpa caches seguros (`config`, `route`, `view`) e regenera a docume
 cd backend
 ./vendor/bin/sail test
 ```
+
+## Executar app mobile
+
+```bash
+cd mobile
+npm start
+```
+
+Comando unico na raiz (backend + mobile):
+
+```bash
+./scripts/dev.sh
+```
+
+Atalhos uteis no Expo:
+
+- `a` para Android
+- `i` para iOS
+- `w` para Web
 

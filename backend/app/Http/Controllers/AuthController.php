@@ -8,9 +8,30 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
+    #[OA\Post(
+        path: '/api/register',
+        summary: 'Registra um novo usuario',
+        tags: ['Auth']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['name', 'email', 'password', 'password_confirmation', 'accepted_terms'],
+            properties: [
+                new OA\Property(property: 'name', type: 'string', example: 'Alexandre'),
+                new OA\Property(property: 'email', type: 'string', format: 'email', example: 'alex@example.com'),
+                new OA\Property(property: 'password', type: 'string', example: 'password123'),
+                new OA\Property(property: 'password_confirmation', type: 'string', example: 'password123'),
+                new OA\Property(property: 'accepted_terms', type: 'boolean', example: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Usuario registrado com sucesso')]
+    #[OA\Response(response: 422, description: 'Erro de validacao')]
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -45,6 +66,23 @@ class AuthController extends Controller
     /**
      * @throws ValidationException
      */
+    #[OA\Post(
+        path: '/api/login',
+        summary: 'Realiza login com email e senha',
+        tags: ['Auth']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['email', 'password'],
+            properties: [
+                new OA\Property(property: 'email', type: 'string', format: 'email', example: 'alex@example.com'),
+                new OA\Property(property: 'password', type: 'string', example: 'password123'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Login realizado com sucesso')]
+    #[OA\Response(response: 422, description: 'Credenciais invalidas')]
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
@@ -69,6 +107,14 @@ class AuthController extends Controller
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/me',
+        summary: 'Retorna dados do usuario autenticado',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth']
+    )]
+    #[OA\Response(response: 200, description: 'Usuario autenticado retornado')]
+    #[OA\Response(response: 401, description: 'Nao autenticado')]
     public function me(Request $request): JsonResponse
     {
         return response()->json($request->user());

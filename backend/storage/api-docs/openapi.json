@@ -12,6 +12,273 @@
         }
     ],
     "paths": {
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Registra um novo usuario",
+                "operationId": "8a56853624e025573120a09a4c75d468",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "accepted_terms"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Alexandre"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "alex@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "accepted_terms": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario registrado com sucesso"
+                    },
+                    "422": {
+                        "description": "Erro de validacao"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Realiza login com email e senha",
+                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "alex@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login realizado com sucesso"
+                    },
+                    "422": {
+                        "description": "Credenciais invalidas"
+                    }
+                }
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Retorna dados do usuario autenticado",
+                "operationId": "9d9bc556f927575aa492a88c28fe5908",
+                "responses": {
+                    "200": {
+                        "description": "Usuario autenticado retornado"
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/market/btc": {
+            "get": {
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Retorna preco atual fake do BTC",
+                "operationId": "b7e01bec6a2453b039ead97f5324cc35",
+                "responses": {
+                    "200": {
+                        "description": "Preco atual retornado com sucesso"
+                    }
+                }
+            }
+        },
+        "/api/trade/buy": {
+            "post": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Compra BTC usando saldo BRL",
+                "operationId": "b2b67a70f7df374bec7a728989ea5978",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount_brl"
+                                ],
+                                "properties": {
+                                    "amount_brl": {
+                                        "type": "string",
+                                        "example": "2500.00000000"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Compra realizada com sucesso"
+                    },
+                    "422": {
+                        "description": "Erro de validacao ou saldo insuficiente"
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trade/sell": {
+            "post": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Vende BTC e converte para BRL",
+                "operationId": "46150e42804574884e216af92068e1fc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount_btc"
+                                ],
+                                "properties": {
+                                    "amount_btc": {
+                                        "type": "string",
+                                        "example": "0.01000000"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Venda realizada com sucesso"
+                    },
+                    "422": {
+                        "description": "Erro de validacao ou saldo insuficiente"
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/transactions": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Lista historico de transacoes do usuario autenticado",
+                "operationId": "6581469356772e7a74a0d79897544f1a",
+                "responses": {
+                    "200": {
+                        "description": "Historico retornado com sucesso"
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/wallet": {
+            "get": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Retorna saldos da carteira do usuario autenticado",
+                "operationId": "b0aeab5a5b4b667ad1a4726d02a324cf",
+                "responses": {
+                    "200": {
+                        "description": "Carteira retornada com sucesso"
+                    },
+                    "401": {
+                        "description": "Nao autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/up": {
             "get": {
                 "tags": [
@@ -37,6 +304,26 @@
         }
     },
     "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Market",
+            "description": "Market"
+        },
+        {
+            "name": "Trade",
+            "description": "Trade"
+        },
+        {
+            "name": "Transactions",
+            "description": "Transactions"
+        },
+        {
+            "name": "Wallet",
+            "description": "Wallet"
+        },
         {
             "name": "Health",
             "description": "Health"
