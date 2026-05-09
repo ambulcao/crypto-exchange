@@ -2,6 +2,16 @@
 
 Plataforma de trading (mini Binance) com backend em Laravel e aplicativo mobile em React Native.
 
+## Documentacao por area
+
+| Area | README | Conteudo principal |
+|------|--------|-------------------|
+| **Raiz** (este arquivo) | `README.md` | Objetivo do teste, stack resumida, **status consolidado** (backend + mobile), scripts, fluxo full-stack |
+| **Backend** | [`backend/README.md`](backend/README.md) | Versoes PHP/Laravel/Sanctum, **status Fases 1–3**, tabela de rotas `/api`, Sail, testes, OpenAPI |
+| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4 / Dia 3**, Expo, Axios, troubleshooting |
+
+O bloco **Objetivo do teste tecnico** (abaixo) e intencionalmente **so na raiz** — nao repete-se em `backend/README.md` nem em `mobile/README.md`.
+
 ## Objetivo do teste tecnico
 
 Entregar uma aplicacao simples de compra e venda de BTC com:
@@ -13,13 +23,22 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 - historico de transacoes;
 - documentacao clara e testes automatizados.
 
-## Stack do projeto
+## Stack do projeto (versoes)
 
-- Backend: Laravel 13, Sanctum, MySQL, Redis, Docker (Sail)
-- Mobile: React Native (Expo) em `mobile/`
-- Testes: PHPUnit (Feature e Unit)
+Resumo alinhado a `backend/composer.json` e `mobile/package.json`. Detalhes e comandos por pacote nos READMEs linkados acima.
+
+| Camada | Tecnologias principais |
+|--------|------------------------|
+| **Backend** | PHP ^8.3, Laravel ^13, Sanctum ^4, Sail ^1.58, MySQL, Redis, PHPUnit ^12.5, L5-Swagger ^11 |
+| **Mobile** | Expo SDK ~54, React 19.1, React Native 0.81, TypeScript ~5.9, NativeWind ^4, Tailwind ^3.4, Axios ^1.16, date-fns ^4.1 |
+| **Testes (API)** | PHPUnit (Feature e Unit) |
 
 ## Status de implementacao
+
+Checklist **consolidado** (tudo o que foi entregue). O detalhe por area:
+
+- **Backend (Fases 1–3):** [backend/README.md — Status de implementacao (backend)](backend/README.md#status-de-implementacao-backend)
+- **Mobile (Fase 4 + Dia 3):** [mobile/README.md — Status de implementacao (mobile)](mobile/README.md#status-de-implementacao-mobile)
 
 ### Fase 1 - Execucao inicial
 
@@ -69,24 +88,11 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 - [x] Estados de carregamento: spinner + esqueletos; lista vazia com **Nenhuma transação encontrada.**
 - [x] `ScrollView` com `nestedScrollEnabled` para scroll com lista aninhada
 
-Documentacao focada no backend (mesma visao de rotas): [`backend/README.md`](backend/README.md).
+## API REST (trading)
 
-## Rotas principais da API (trading)
+Rotas com prefixo `/api`, Sanctum (exceto `register` / `login`). **Tabela completa e descricao:** [backend/README.md — Rotas principais da API](backend/README.md#rotas-principais-da-api-trading).
 
-Todas abaixo usam prefixo `/api` e, exceto registro/login, exigem `Authorization: Bearer <token>` (Sanctum).
-
-| Metodo | Rota | Descricao |
-|--------|------|-----------|
-| POST | `/register` | Registro de usuario |
-| POST | `/login` | Login e emissao de token |
-| GET | `/me` | Dados do usuario autenticado |
-| GET | `/wallet` | Saldos BRL e BTC |
-| GET | `/market/btc` | Cotacao fake (cache/Redis) |
-| POST | `/trade/buy` | Compra de BTC |
-| POST | `/trade/sell` | Venda de BTC |
-| GET | `/transactions` | Historico de operacoes do usuario |
-
-O app em `mobile/` consome estes endpoints. Detalhes de decisao e UX do historico (iteracao 16): `technical_notes.md` (ficheiro local, gitignored, se o mantiveres na pasta do projeto).
+O app em `mobile/` consome estes endpoints. Notas de entrevista / UX (ex.: iteracao 16): `technical_notes.md` (local; pode estar gitignored).
 
 ## Como executar o backend
 
@@ -171,9 +177,9 @@ ou
 
 ```text
 crypto-exchange/
-  backend/               # API Laravel (+ README com rotas e execucao)
-  mobile/                # App React Native (Expo)
-  README.md              # Documento principal do projeto
+  backend/               # API Laravel (+ README so backend)
+  mobile/                # App Expo (+ README so frontend)
+  README.md              # Visao geral e checklist consolidado
 ```
 
 ## Acesso a documentacao da API
@@ -212,80 +218,11 @@ cd backend
 
 ## Executar app mobile
 
-O app usa [NativeWind](https://www.nativewind.dev/) (Tailwind no React Native). Arquivos principais: `mobile/tailwind.config.js`, `mobile/global.css`, `mobile/babel.config.js`, `mobile/metro.config.js`.
-
-Na primeira vez apos instalar dependencias ou mudar config do Tailwind/Metro, limpe o cache do bundler:
-
-```bash
-cd mobile
-npx expo start -c
-```
-
-Fluxo normal:
-
-```bash
-cd mobile
-npm start
-```
+Instrucoes completas (Expo, NativeWind, Axios, cache `-c`, troubleshooting): [**mobile/README.md**](mobile/README.md).
 
 Comando unico na raiz (backend + mobile):
 
 ```bash
 ./scripts/dev.sh
-```
-
-## Configuracao da API no mobile (Axios)
-
-O app mobile usa um cliente Axios central em `mobile/src/services/api.ts`.
-
-- URL via ambiente: `EXPO_PUBLIC_API_URL`
-- Fallback padrao:
-  - Android emulator: `http://10.0.2.2/api`
-  - iOS simulator/Web: `http://127.0.0.1/api`
-
-Para dispositivo fisico, configure o IP da sua maquina:
-
-```bash
-cd mobile
-cp .env.example .env
-# ajuste EXPO_PUBLIC_API_URL para o IP local, exemplo:
-# EXPO_PUBLIC_API_URL=http://192.168.0.10/api
-```
-
-Atalhos uteis no Expo:
-
-- `a` para Android
-- `i` para iOS
-- `w` para Web
-
-## Troubleshooting (mobile)
-
-### Erro: Unable to resolve "@react-native-async-storage/async-storage"
-
-Causa comum:
-
-- dependencia nao instalada dentro de `mobile/`.
-
-Correcao:
-
-```bash
-npm install @react-native-async-storage/async-storage --prefix ./mobile
-```
-
-### Erro: Rendered more hooks than during the previous render
-
-Causa comum:
-
-- algum hook (ex.: `useMemo`) sendo declarado depois de um `return` condicional.
-
-Correcao:
-
-- manter todos os hooks no topo do componente, antes de qualquer `if (...) return ...`.
-
-Se o erro persistir por cache do Metro:
-
-```bash
-cd mobile
-npx expo start -c
 ```
 

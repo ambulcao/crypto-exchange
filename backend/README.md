@@ -1,18 +1,55 @@
-# Backend - Crypto Exchange
+# Backend — Crypto Exchange
 
-API Laravel para o teste tecnico de plataforma de trading.
+API Laravel do monorepo. O **objetivo do teste tecnico** e a visao geral do produto estao apenas no [`README.md` da raiz](../README.md) (nao duplicamos esse bloco aqui).
 
-## Escopo atual
+## Stack (versoes)
 
-- Base Laravel criada com Sail
-- API scaffold instalada (`install:api`)
-- Sanctum configurado no `User`
-- Testes iniciais de bootstrap/API protegida
-- Dominio de trading: wallet, mercado (preco BTC em cache/Redis), compra/venda atomica e historico persistido
+Valores alinhados ao `composer.json` do projeto.
+
+| Tecnologia | Versao / notas |
+|------------|----------------|
+| PHP | ^8.3 |
+| Laravel Framework | ^13.0 |
+| Laravel Sanctum | ^4.0 (API token) |
+| Laravel Sail | ^1.58 (Docker Compose) |
+| PHPUnit | ^12.5 (`require-dev`) |
+| L5-Swagger | ^11.0 (OpenAPI) |
+| MySQL / Redis | Servicos definidos no `compose.yaml` do Sail |
+
+Testes: Feature e Unit em `backend/tests/`.
+
+## Status de implementacao (backend)
+
+### Fase 1 — Execucao inicial
+
+- [x] Projeto Laravel com Sail e ambiente Docker
+- [x] Containers `laravel.test`, `mysql`, `redis`, `mailpit`
+- [x] API scaffolding (`php artisan install:api`)
+
+### Fase 2 — Autenticacao
+
+- [x] `POST /api/register`, `POST /api/login`, `GET /api/me`
+- [x] Aceite de termos (`accepted_terms`, `accepted_terms_at`)
+
+### Fase 3 — Wallet, mercado e trade
+
+- [x] `GET /api/wallet`, `GET /api/market/btc`, `POST /api/trade/buy`, `POST /api/trade/sell`, `GET /api/transactions`
+- [x] Migrations `wallets` e `transactions` com `decimal(16,8)`
+- [x] Compra/venda com transacao atomica e `lockForUpdate` na carteira
+
+Integracao com o app: [`mobile/README.md`](../mobile/README.md).
+
+## Escopo funcional (API)
+
+- Autenticacao com Sanctum
+- Carteira (BRL/BTC), cotacao fake de BTC com cache em **Redis**
+- Operacoes de compra e venda com integridade transacional
+- Historico persistido em `transactions`
+- Documentacao OpenAPI (Swagger UI + Scalar)
 
 ## Rotas principais da API (trading)
 
-Todas abaixo usam prefixo `/api` e, exceto registro/login, exigem `Authorization: Bearer <token>` (Sanctum).
+Todas abaixo usam prefixo `/api`. Exceto registro e login, exigem cabecalho `Authorization: Bearer <token>` (Sanctum).
 
 | Metodo | Rota | Descricao |
 |--------|------|-----------|
@@ -25,11 +62,10 @@ Todas abaixo usam prefixo `/api` e, exceto registro/login, exigem `Authorization
 | POST | `/trade/sell` | Venda de BTC |
 | GET | `/transactions` | Historico de operacoes do usuario |
 
-O app mobile (Expo) em `../mobile` consome estes endpoints. Na **Fase 1 do Dia 3** o historico foi refinado no cliente: `FlatList`, cores por tipo (`buy`/`sell`), formatacao de valores com `Intl.NumberFormat` e datas com `date-fns` (locale `pt-BR`), estados de carregamento com esqueleto e mensagem **Nenhuma transação encontrada.** Detalhes de UX e decisoes: `technical_notes.md` (iteracao 16). A mesma tabela de rotas esta no `README.md` da raiz do repositorio.
-
 ## Executar localmente
 
 ```bash
+cd backend
 ./vendor/bin/sail up -d
 ./vendor/bin/sail artisan route:list
 ```
@@ -37,23 +73,26 @@ O app mobile (Expo) em `../mobile` consome estes endpoints. Na **Fase 1 do Dia 3
 ## Rodar testes
 
 ```bash
+cd backend
 ./vendor/bin/sail test
 ```
 
 ## Documentacao da API
 
-Gerar/atualizar OpenAPI:
+Gerar ou atualizar o OpenAPI:
 
 ```bash
+cd backend
 ./vendor/bin/sail artisan l5-swagger:generate
 ```
 
-Acessar interfaces:
+Interfaces (com stack a correr):
 
 - Swagger UI: `http://localhost/api/documentation`
 - Scalar UI: `http://localhost/scalar`
-- OpenAPI JSON (canonico): `http://localhost/docs`
+- OpenAPI JSON: `http://localhost/docs`
 
-## Documentacao principal
+## Documentacao no monorepo
 
-A documentacao completa do projeto, fases e plano de testes esta no `README.md` da raiz do repositorio.
+- Visao geral e checklist completo (backend + mobile): [`README.md`](../README.md)
+- App mobile (Expo): [`mobile/README.md`](../mobile/README.md)
