@@ -25,7 +25,7 @@ Todas abaixo usam prefixo `/api` e, exceto registro/login, exigem `Authorization
 | POST | `/trade/sell` | Venda de BTC |
 | GET | `/transactions` | Historico de operacoes do usuario |
 
-O app mobile (Expo) em `../mobile` consome estes endpoints. Na **Fase 1 do Dia 3** o historico foi refinado no cliente: `FlatList`, cores por tipo (`buy`/`sell`), formatacao de valores com `Intl.NumberFormat` e datas com `date-fns` (locale `pt-BR`), estados de carregamento com esqueleto e mensagem **Nenhuma transação encontrada.** Detalhes de UX e decisoes estao em `technical_notes.md` (iteracao 16) e no `README.md` da raiz.
+O app mobile (Expo) em `../mobile` consome estes endpoints. Na **Fase 1 do Dia 3** o historico foi refinado no cliente: `FlatList`, cores por tipo (`buy`/`sell`), formatacao de valores com `Intl.NumberFormat` e datas com `date-fns` (locale `pt-BR`), estados de carregamento com esqueleto e mensagem **Nenhuma transação encontrada.** Detalhes de UX e decisoes: `technical_notes.md` (iteracao 16). A mesma tabela de rotas esta no `README.md` da raiz do repositorio.
 
 ## Executar localmente
 

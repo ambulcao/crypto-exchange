@@ -63,7 +63,30 @@ Entregar uma aplicacao simples de compra e venda de BTC com:
 - [x] Correcao da ordem de hooks no `RootScreen` (erro "Rendered more hooks than during the previous render")
 - [x] Dashboard com carteira + preco BTC
 - [x] Tela de trade (buy/sell)
-- [x] Tela de historico (`GET /transactions`) com refresh manual
+- [x] Tela de historico (`GET /api/transactions`) com refresh manual
+- [x] **Dia 3 — Fase 1:** lista de historico com `FlatList`; cores distintas compra (verde) / venda (vermelho)
+- [x] Formatacao de valores com `Intl.NumberFormat` e datas com `date-fns` (locale `pt-BR`) em `mobile/src/utils/format.ts`
+- [x] Estados de carregamento: spinner + esqueletos; lista vazia com **Nenhuma transação encontrada.**
+- [x] `ScrollView` com `nestedScrollEnabled` para scroll com lista aninhada
+
+Documentacao focada no backend (mesma visao de rotas): [`backend/README.md`](backend/README.md).
+
+## Rotas principais da API (trading)
+
+Todas abaixo usam prefixo `/api` e, exceto registro/login, exigem `Authorization: Bearer <token>` (Sanctum).
+
+| Metodo | Rota | Descricao |
+|--------|------|-----------|
+| POST | `/register` | Registro de usuario |
+| POST | `/login` | Login e emissao de token |
+| GET | `/me` | Dados do usuario autenticado |
+| GET | `/wallet` | Saldos BRL e BTC |
+| GET | `/market/btc` | Cotacao fake (cache/Redis) |
+| POST | `/trade/buy` | Compra de BTC |
+| POST | `/trade/sell` | Venda de BTC |
+| GET | `/transactions` | Historico de operacoes do usuario |
+
+O app em `mobile/` consome estes endpoints. Detalhes de decisao e UX do historico (iteracao 16): `technical_notes.md` (ficheiro local, gitignored, se o mantiveres na pasta do projeto).
 
 ## Como executar o backend
 
@@ -148,7 +171,7 @@ ou
 
 ```text
 crypto-exchange/
-  backend/               # API Laravel
+  backend/               # API Laravel (+ README com rotas e execucao)
   mobile/                # App React Native (Expo)
   README.md              # Documento principal do projeto
 ```
