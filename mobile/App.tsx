@@ -1,10 +1,20 @@
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { api } from './src/services/api';
+import { formatBrl, formatBtc, formatBtcPrice, formatTransactionDate } from './src/utils/format';
 
 const BTC_POLLING_INTERVAL_MS = 15000;
 
@@ -255,7 +265,7 @@ const RootScreen = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
+    <ScrollView className="flex-1 bg-white" nestedScrollEnabled>
       <View className="flex-grow items-center justify-center gap-3 px-5 py-6">
         <Text className="text-[22px] font-semibold text-gray-900">Crypto Exchange</Text>
 
@@ -376,26 +386,52 @@ const RootScreen = () => {
               <Text className="font-bold text-gray-900">Historico de transacoes</Text>
 
               {transactionsLoading ? (
-                <View className="flex-row items-center gap-2">
-                  <ActivityIndicator />
-                  <Text className="text-sm text-gray-600">Carregando historico...</Text>
-                </View>
-              ) : transactions.length === 0 ? (
-                <Text className="text-sm text-gray-600">Nenhuma transacao registrada ainda.</Text>
-              ) : (
                 <View className="gap-2">
-                  {transactions.slice(0, 8).map((item) => (
-                    <View key={item.id} className="gap-0.5 rounded-lg border border-gray-200 p-2">
-                      <Text className="font-bold text-gray-900">{item.type.toUpperCase()}</Text>
-                      <Text className="text-sm text-gray-600">
-                        BRL: {item.amount_brl} | BTC: {item.amount_btc}
-                      </Text>
-                      <Text className="text-sm text-gray-600">
-                        Preco BTC: {item.btc_price} | {formatExecutedAt(item.executed_at)}
-                      </Text>
-                    </View>
+                  <View className="flex-row items-center gap-2">
+                    <ActivityIndicator />
+                    <Text className="text-sm text-gray-600">Carregando historico...</Text>
+                  </View>
+                  {[0, 1, 2].map((key) => (
+                    <View key={key} className="h-[72px] rounded-lg bg-gray-200 opacity-50" />
                   ))}
                 </View>
+              ) : (
+                <FlatList
+                  data={transactions}
+                  keyExtractor={(item) => String(item.id)}
+                  scrollEnabled={transactions.length > 4}
+                  style={{ maxHeight: 360 }}
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
+                  renderItem={({ item }) => (
+                    <View
+                      className={`mb-2 rounded-lg border border-gray-200 p-3 ${
+                        item.type === 'buy'
+                          ? 'border-l-4 border-l-green-600 bg-green-50'
+                          : 'border-l-4 border-l-red-600 bg-red-50'
+                      }`}
+                    >
+                      <Text
+                        className={`text-base font-bold ${
+                          item.type === 'buy' ? 'text-green-800' : 'text-red-800'
+                        }`}
+                      >
+                        {item.type === 'buy' ? 'COMPRA' : 'VENDA'}
+                      </Text>
+                      <Text className="text-sm text-gray-800">
+                        {formatBrl(item.amount_brl)} · {formatBtc(item.amount_btc)}
+                      </Text>
+                      <Text className="text-sm text-gray-600">
+                        Cotacao: {formatBtcPrice(item.btc_price)} · {formatTransactionDate(item.executed_at)}
+                      </Text>
+                    </View>
+                  )}
+                  ListEmptyComponent={
+                    <Text className="py-4 text-center text-sm text-gray-600">
+                      Nenhuma transação encontrada.
+                    </Text>
+                  }
+                />
               )}
 
               {transactionsError ? <Text className="text-[13px] text-red-800">{transactionsError}</Text> : null}
@@ -538,14 +574,4 @@ type TransactionItem = {
   amount_btc: string;
   btc_price: string;
   executed_at: string;
-};
-
-const formatExecutedAt = (iso: string) => {
-  const date = new Date(iso);
-
-  if (Number.isNaN(date.getTime())) {
-    return iso;
-  }
-
-  return date.toLocaleString();
 };
