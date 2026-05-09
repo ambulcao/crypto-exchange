@@ -77,6 +77,18 @@ cd backend
 ./vendor/bin/sail test
 ```
 
+### Testes de regra de negocio — trade (Dia 3)
+
+Arquivo `tests/Feature/TradeTest.php` (integracao HTTP + base de dados):
+
+| Cenario | O que valida |
+|---------|----------------|
+| **A** | `POST /api/trade/buy` sem saldo BRL suficiente -> **422** e `amount_brl` em `errors` |
+| **B** | Compra ok -> saldos na tabela `wallets` e registo em `transactions` coerentes com o preco fixo em cache (`btc_price`) |
+| **C** | Duas compras HTTP consecutivas; a segunda falha com **422** apos a primeira consumir o saldo (comportamento esperado com `lockForUpdate` por operacao) |
+
+Outros fluxos (wallet, market, sell, historico): `tests/Feature/Trading/TradingFlowTest.php`.
+
 ## Documentacao da API
 
 Gerar ou atualizar o OpenAPI:

@@ -6,7 +6,7 @@ Plataforma de trading (mini Binance) com backend em Laravel e aplicativo mobile 
 
 | Area | README | Conteudo principal |
 |------|--------|-------------------|
-| **Raiz** (este arquivo) | `README.md` | Objetivo do teste, stack resumida, **status consolidado** (backend + mobile), scripts, fluxo full-stack |
+| **Raiz** | `README.md` | Objetivo do teste, stack resumida, **status consolidado** (backend + mobile), scripts, fluxo full-stack |
 | **Backend** | [`backend/README.md`](backend/README.md) | Versoes PHP/Laravel/Sanctum, **status Fases 1–3**, tabela de rotas `/api`, Sail, testes, OpenAPI |
 | **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4 / Dia 3**, Expo, Axios, troubleshooting |
 
@@ -37,8 +37,8 @@ Resumo alinhado a `backend/composer.json` e `mobile/package.json`. Detalhes e co
 
 Checklist **consolidado** (tudo o que foi entregue). O detalhe por area:
 
-- **Backend (Fases 1–3):** [backend/README.md — Status de implementacao (backend)](backend/README.md#status-de-implementacao-backend)
-- **Mobile (Fase 4 + Dia 3):** [mobile/README.md — Status de implementacao (mobile)](mobile/README.md#status-de-implementacao-mobile)
+- **Backend:** [backend/README.md — Status de implementacao (backend)](backend/README.md#status-de-implementacao-backend)
+- **Mobile:** [mobile/README.md — Status de implementacao (mobile)](mobile/README.md#status-de-implementacao-mobile)
 
 ### Fase 1 - Execucao inicial
 
@@ -64,6 +64,13 @@ Checklist **consolidado** (tudo o que foi entregue). O detalhe por area:
 - [x] `GET /api/transactions`
 - [x] Migrations `wallets` e `transactions` com `decimal(16,8)`
 - [x] Compra/venda com transacao atomica e lock de concorrencia (`lockForUpdate`)
+
+### Dia 3 - Testes automatizados (motor de trade)
+
+- [x] Integracao `tests/Feature/TradeTest.php`: cenario **A** — compra sem saldo BRL retorna **422** com erro de validacao
+- [x] Cenario **B** — compra com sucesso; `wallets` e `transactions` atualizados corretamente no banco
+- [x] Cenario **C** — duas compras seguidas disputando o saldo; a segunda falha com **422** quando o BRL nao alcanca (`lockForUpdate` + transacao atomica)
+- [x] Suite completa: `./vendor/bin/sail test` (ou `cd backend && ./vendor/bin/sail test`)
 
 ### Fase 4 - Mobile e integracao
 
