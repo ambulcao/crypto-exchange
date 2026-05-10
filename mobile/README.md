@@ -38,7 +38,7 @@ Formatacao monetaria: **`Intl.NumberFormat`** (sem pacote extra de i18n so para 
 - [x] Feedback de sucesso (`Alert` + mensagem em tela)
 - [x] Ordem correta de hooks no `RootScreen`
 - [x] Dashboard: carteira + preco BTC
-- [x] Historico: `GET /api/transactions` com refresh manual
+- [x] Historico: `GET /api/transactions` com refresh manual; componentes `TransactionHistoryList` + `TransactionListItem` (`src/components/`)
 - [x] **Dia 3 — Fase 1:** `FlatList` no historico; cores compra (verde) / venda (vermelho)
 - [x] `mobile/src/utils/format.ts`: `Intl` + **date-fns** (`pt-BR`)
 - [x] Loading: spinner + esqueletos; estado vazio com mensagem fixa no app (Dia 3)

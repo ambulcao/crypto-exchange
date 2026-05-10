@@ -1,20 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
+import { TransactionHistoryList } from './src/components/TransactionHistoryList';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { api } from './src/services/api';
-import { formatBrl, formatBtc, formatBtcPrice, formatTransactionDate } from './src/utils/format';
+import type { TransactionRow } from './src/components/transactionTypes';
 
 const BTC_POLLING_INTERVAL_MS = 15000;
 
@@ -47,7 +39,7 @@ const RootScreen = () => {
   const [tradeLoading, setTradeLoading] = useState<'buy' | 'sell' | null>(null);
   const [tradeFeedback, setTradeFeedback] = useState<string | null>(null);
   const [tradeError, setTradeError] = useState<string | null>(null);
-  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [transactionsError, setTransactionsError] = useState<string | null>(null);
   const modeTitle = useMemo(
@@ -115,7 +107,7 @@ const RootScreen = () => {
         setTransactionsLoading(true);
       }
       setTransactionsError(null);
-      const response = await api.get<TransactionItem[]>('/transactions');
+      const response = await api.get<TransactionRow[]>('/transactions');
       setTransactions(response.data);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Nao foi possivel carregar o historico.';
@@ -385,54 +377,7 @@ const RootScreen = () => {
             <View className="w-full max-w-[380px] gap-1.5 rounded-[10px] border border-gray-200 p-3">
               <Text className="font-bold text-gray-900">Historico de transacoes</Text>
 
-              {transactionsLoading ? (
-                <View className="gap-2">
-                  <View className="flex-row items-center gap-2">
-                    <ActivityIndicator />
-                    <Text className="text-sm text-gray-600">Carregando historico...</Text>
-                  </View>
-                  {[0, 1, 2].map((key) => (
-                    <View key={key} className="h-[72px] rounded-lg bg-gray-200 opacity-50" />
-                  ))}
-                </View>
-              ) : (
-                <FlatList
-                  data={transactions}
-                  keyExtractor={(item) => String(item.id)}
-                  scrollEnabled={transactions.length > 4}
-                  style={{ maxHeight: 360 }}
-                  nestedScrollEnabled
-                  keyboardShouldPersistTaps="handled"
-                  renderItem={({ item }) => (
-                    <View
-                      className={`mb-2 rounded-lg border border-gray-200 p-3 ${
-                        item.type === 'buy'
-                          ? 'border-l-4 border-l-green-600 bg-green-50'
-                          : 'border-l-4 border-l-red-600 bg-red-50'
-                      }`}
-                    >
-                      <Text
-                        className={`text-base font-bold ${
-                          item.type === 'buy' ? 'text-green-800' : 'text-red-800'
-                        }`}
-                      >
-                        {item.type === 'buy' ? 'COMPRA' : 'VENDA'}
-                      </Text>
-                      <Text className="text-sm text-gray-800">
-                        {formatBrl(item.amount_brl)} · {formatBtc(item.amount_btc)}
-                      </Text>
-                      <Text className="text-sm text-gray-600">
-                        Cotacao: {formatBtcPrice(item.btc_price)} · {formatTransactionDate(item.executed_at)}
-                      </Text>
-                    </View>
-                  )}
-                  ListEmptyComponent={
-                    <Text className="py-4 text-center text-sm text-gray-600">
-                      Nenhuma transação encontrada.
-                    </Text>
-                  }
-                />
-              )}
+              <TransactionHistoryList data={transactions} loading={transactionsLoading} />
 
               {transactionsError ? <Text className="text-[13px] text-red-800">{transactionsError}</Text> : null}
             </View>
@@ -565,11 +510,3 @@ const mapApiError = (error: unknown, fallback: string) => {
   return message ?? fallback;
 };
 
-type TransactionItem = {
-  id: number;
-  type: 'buy' | 'sell';
-  amount_brl: string;
-  amount_btc: string;
-  btc_price: string;
-  executed_at: string;
-};

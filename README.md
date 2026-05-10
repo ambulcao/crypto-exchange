@@ -6,9 +6,9 @@ Plataforma de trading (mini Binance) com backend em Laravel e aplicativo mobile 
 
 | Area | README | Conteudo principal |
 |------|--------|-------------------|
-| **Raiz** | `README.md` | Objetivo, stack, **guia Docker/Sail** (`up`, `key:generate`, `migrate`), **arquitetura** (transacao + `lockForUpdate`), **diferenciais** (Redis, decimal), **Swagger + cURL**, status, scripts |
+| **Raiz** | `README.md` | Objetivo, stack, guia Docker/Sail, **arquitetura**, **diferenciais**, secao **decimal(16,8) e concorrencia**, **Swagger + cURL**, status, scripts |
 | **Backend** | [`backend/README.md`](backend/README.md) | Versoes PHP/Laravel/Sanctum, **status Fases 1–3**, tabela de rotas `/api`, Sail, testes, OpenAPI |
-| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4 /**, Expo, Axios, troubleshooting |
+| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4 / Dia 3**, Expo, Axios, troubleshooting |
 
 O bloco **Objetivo do teste tecnico** (abaixo) e intencionalmente **so na raiz** — nao repete-se em `backend/README.md` nem em `mobile/README.md`.
 
@@ -48,6 +48,28 @@ Codigo de referencia: [`backend/app/Services/TradeService.php`](backend/app/Serv
 |--------|-----------------|
 | **Redis (cache de preco)** | O `MarketPriceService` usa a chave de cache **`btc_price`** (TTL curto). Cotacoes repetidas reutilizam o valor em memoria/Redis, alinhando mercado e trade sem gerar preco novo a cada request. |
 | **Precisao decimal (8 casas para BTC)** | Migrations com **`decimal(16,8)`** para BRL e BTC em `wallets` e `transactions`. No servico de trade, calculos com **BCMath** (`bcadd`, `bcsub`, `bcdiv`, `bcmul`, `bccomp`) em vez de `float`, evitando erro de representacao binaria em dinheiro e cripto. |
+
+## Por que `decimal(16,8)` para cripto e como a concorrencia foi tratada
+
+### Precisao numerica (`decimal(16,8)`)
+
+Tipos de ponto flutuante (`float` / `double` em PHP) representam numeros em base binaria: valores como `0.1` nao sao exatos, e operacoes repetidas de soma/subtracao acumulam erro — inaceitavel para **saldo**, **quantidade de BTC** e **preco de execucao**.
+
+Por isso o modelo usa colunas **`DECIMAL(16,8)`** no MySQL:
+
+- **16** digitos no total e **8** apos a casa decimal permitem valores grandes o suficiente para BRL e granularidade fina para fracoes de BTC (ate satoshis em escala logica de negocio).
+- Os valores sao persistidos e comparados como decimais exatos no banco; na aplicacao, o **`TradeService`** usa **BCMath** para somar, subtrair, multiplicar, dividir e comparar **sem converter para float**, mantendo consistencia com o que esta gravado nas tabelas `wallets` e `transactions`.
+
+### Concorrencia e travas (`lockForUpdate`)
+
+Varias requisicoes HTTP podem chegar ao mesmo tempo tentando debitar a mesma carteira. Sem sincronizacao, duas leituras do mesmo saldo poderiam autorizar duas compras que, somadas, excedem o disponivel (**double spending** por corrida).
+
+A abordagem adotada e **pessimista e explicita no banco**:
+
+1. Cada compra ou venda executa dentro de **`DB::transaction(...)`**, garantindo que atualizacao da wallet e insercao no historico sejam **atomicas**: ou tudo confirma (`commit`) ou nada persiste (`rollback`).
+2. Dentro dessa transacao, a linha da carteira do usuario e carregada com **`lockForUpdate()`**. No MySQL (InnoDB), isso bloqueia a linha ate o fim da transacao atual, de forma que outra requisicao que precise da mesma linha **aguarda** e so le os saldos depois que a primeira operacao termina — evitando decisoes de trade com base em saldo **desatualizado**.
+
+O fluxo esta centralizado em **`backend/app/Services/TradeService.php`**, chamado pelo **`TradeController`**. Os testes em **`tests/Feature/TradeTest.php`** cobrem falha por saldo insuficiente (sem alterar wallet nem criar transacao) e sucesso com wallet e `transactions` coerentes.
 
 ## Status de implementacao
 
@@ -99,7 +121,7 @@ Checklist **consolidado** (tudo o que foi entregue). O detalhe por area:
 - [x] Dashboard com carteira + preco BTC
 - [x] Tela de trade (buy/sell)
 - [x] Tela de historico (`GET /api/transactions`) com refresh manual
-- [x] lista de historico com `FlatList`; cores distintas compra (verde) / venda (vermelho)
+- [x] Historico com `TransactionHistoryList` / `TransactionListItem` (`FlatList`): tipo Compra/Venda, BTC, BRL e data formatada; cores compra (verde) / venda (vermelho)
 - [x] Formatacao de valores com `Intl.NumberFormat` e datas com `date-fns` (locale `pt-BR`) em `mobile/src/utils/format.ts`
 - [x] Estados de carregamento: spinner + esqueletos; lista vazia com **Nenhuma transação encontrada.**
 - [x] `ScrollView` com `nestedScrollEnabled` para scroll com lista aninhada
