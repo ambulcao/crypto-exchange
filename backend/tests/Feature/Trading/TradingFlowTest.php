@@ -19,8 +19,12 @@ class TradingFlowTest extends TestCase
         parent::setUp();
 
         Cache::flush();
+    }
+
+    private function fakeCoingeckoBtcBrl(float $brl): void
+    {
         Http::fake([
-            'api.coingecko.com/*' => Http::response(['bitcoin' => ['brl' => 250_000]], 200),
+            'api.coingecko.com/*' => Http::response(['bitcoin' => ['brl' => $brl]], 200),
         ]);
     }
 
@@ -46,9 +50,7 @@ class TradingFlowTest extends TestCase
     public function test_market_endpoint_returns_price_from_coingecko(): void
     {
         Cache::flush();
-        Http::fake([
-            'api.coingecko.com/*' => Http::response(['bitcoin' => ['brl' => 398_123.45]], 200),
-        ]);
+        $this->fakeCoingeckoBtcBrl(398_123.45);
 
         $response = $this->getJson('/api/market/btc')
             ->assertOk()
@@ -60,6 +62,8 @@ class TradingFlowTest extends TestCase
 
     public function test_buy_fails_when_brl_balance_is_insufficient(): void
     {
+        $this->fakeCoingeckoBtcBrl(250_000);
+
         $user = User::factory()->create();
         Wallet::create([
             'user_id' => $user->id,
@@ -76,6 +80,8 @@ class TradingFlowTest extends TestCase
 
     public function test_buy_updates_wallet_and_creates_transaction(): void
     {
+        $this->fakeCoingeckoBtcBrl(250_000);
+
         $user = User::factory()->create();
         Wallet::create([
             'user_id' => $user->id,
@@ -106,6 +112,8 @@ class TradingFlowTest extends TestCase
 
     public function test_sell_updates_wallet_and_creates_transaction(): void
     {
+        $this->fakeCoingeckoBtcBrl(250_000);
+
         $user = User::factory()->create();
         Wallet::create([
             'user_id' => $user->id,
@@ -136,6 +144,8 @@ class TradingFlowTest extends TestCase
 
     public function test_sell_fails_when_btc_balance_is_insufficient(): void
     {
+        $this->fakeCoingeckoBtcBrl(250_000);
+
         $user = User::factory()->create();
         Wallet::create([
             'user_id' => $user->id,
@@ -152,6 +162,8 @@ class TradingFlowTest extends TestCase
 
     public function test_transactions_endpoint_lists_user_history(): void
     {
+        $this->fakeCoingeckoBtcBrl(250_000);
+
         $user = User::factory()->create();
         Wallet::create([
             'user_id' => $user->id,

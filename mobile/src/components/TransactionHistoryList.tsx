@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 import { TransactionListItem } from './TransactionListItem';
 
@@ -27,18 +27,15 @@ export function TransactionHistoryList({ data, loading, emptyMessage = DEFAULT_E
     );
   }
 
+  if (data.length === 0) {
+    return <Text className="py-4 text-center text-sm text-gray-600">{emptyMessage}</Text>;
+  }
+
   return (
-    <FlatList
-      data={data}
-      keyExtractor={(item) => String(item.id)}
-      scrollEnabled={data.length > 4}
-      style={{ maxHeight: 360 }}
-      nestedScrollEnabled
-      keyboardShouldPersistTaps="handled"
-      renderItem={({ item }) => <TransactionListItem item={item} />}
-      ListEmptyComponent={
-        <Text className="py-4 text-center text-sm text-gray-600">{emptyMessage}</Text>
-      }
-    />
+    <View className="gap-0">
+      {data.map((item) => (
+        <TransactionListItem key={item.id} item={item} />
+      ))}
+    </View>
   );
 }

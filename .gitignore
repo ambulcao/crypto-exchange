@@ -29,3 +29,6 @@ Homestead.json
 .phpactor.json
 auth.json
 
+# Notas locais (não versionar)
+pre_commit.md
+technical_notes.md
