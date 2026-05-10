@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
@@ -78,7 +78,7 @@ class AuthController extends Controller
         )
     )]
     #[OA\Response(response: 200, description: 'Login realizado com sucesso')]
-    #[OA\Response(response: 422, description: 'Credenciais invalidas')]
+    #[OA\Response(response: 422, description: 'Email nao cadastrado ou senha incorreta')]
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
@@ -86,17 +86,26 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($credentials)) {
+        $user = User::query()->where('email', $credentials['email'])->first();
+
+        if (! $user) {
             return response()->json([
-                'message' => 'Credenciais invalidas.',
+                'message' => 'Usuario inexistente, faca seu registro.',
                 'errors' => [
-                    'email' => ['Credenciais invalidas.'],
+                    'email' => ['Usuario inexistente, faca seu registro.'],
                 ],
             ], 422);
         }
 
-        /** @var User $user */
-        $user = $request->user();
+        if (! Hash::check($credentials['password'], $user->password)) {
+            return response()->json([
+                'message' => 'Credenciais invalidas.',
+                'errors' => [
+                    'password' => ['Credenciais invalidas.'],
+                ],
+            ], 422);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

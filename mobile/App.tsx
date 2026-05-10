@@ -506,25 +506,6 @@ const RootScreen = () => {
 
             {formError ? <Text className="text-[13px] text-red-800">{formError}</Text> : null}
 
-            <View className="flex-row gap-2">
-              <Pressable
-                className={`flex-1 items-center rounded-lg border py-2 ${
-                  mode === 'login' ? 'border-gray-900 bg-gray-100' : 'border-gray-300 bg-white'
-                }`}
-                onPress={() => setMode('login')}
-              >
-                <Text className="font-semibold text-gray-900">Login</Text>
-              </Pressable>
-              <Pressable
-                className={`flex-1 items-center rounded-lg border py-2 ${
-                  mode === 'register' ? 'border-gray-900 bg-gray-100' : 'border-gray-300 bg-white'
-                }`}
-                onPress={() => setMode('register')}
-              >
-                <Text className="font-semibold text-gray-900">Registro</Text>
-              </Pressable>
-            </View>
-
             <Pressable
               className={`items-center rounded-lg bg-gray-900 px-4 py-2.5 ${loadingAction ? 'opacity-70' : ''}`}
               onPress={() => void onSubmit()}
@@ -533,9 +514,41 @@ const RootScreen = () => {
               {loadingAction ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text className="font-semibold text-white">{mode === 'login' ? 'Entrar' : 'Registrar'}</Text>
+                <Text className="font-semibold text-white">
+                  {mode === 'login' ? 'Entrar na conta' : 'Criar minha conta'}
+                </Text>
               )}
             </Pressable>
+
+            {mode === 'login' ? (
+              <View className="flex-row flex-wrap items-center justify-center gap-1 px-1">
+                <Text className="text-center text-sm text-gray-600">Nao tem conta?</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={() => {
+                    setFormError(null);
+                    setMode('register');
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-gray-900 underline">Cadastre-se</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View className="flex-row flex-wrap items-center justify-center gap-1 px-1">
+                <Text className="text-center text-sm text-gray-600">Ja tem conta?</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={() => {
+                    setFormError(null);
+                    setMode('login');
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-gray-900 underline">Fazer login</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         )}
 
