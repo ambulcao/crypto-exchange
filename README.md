@@ -8,7 +8,7 @@ Plataforma de trading (mini Binance) com backend em Laravel e aplicativo mobile 
 |------|--------|-------------------|
 | **Raiz** | `README.md` | Objetivo, stack, **guia Docker/Sail** (`up`, `key:generate`, `migrate`), **arquitetura** (transacao + `lockForUpdate`), **diferenciais** (Redis, decimal), **Swagger + cURL**, status, scripts |
 | **Backend** | [`backend/README.md`](backend/README.md) | Versoes PHP/Laravel/Sanctum, **status Fases 1–3**, tabela de rotas `/api`, Sail, testes, OpenAPI |
-| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4 / Dia 3**, Expo, Axios, troubleshooting |
+| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4 /**, Expo, Axios, troubleshooting |
 
 O bloco **Objetivo do teste tecnico** (abaixo) e intencionalmente **so na raiz** — nao repete-se em `backend/README.md` nem em `mobile/README.md`.
 
@@ -99,7 +99,7 @@ Checklist **consolidado** (tudo o que foi entregue). O detalhe por area:
 - [x] Dashboard com carteira + preco BTC
 - [x] Tela de trade (buy/sell)
 - [x] Tela de historico (`GET /api/transactions`) com refresh manual
-- [x] **Dia 3 — Fase 1:** lista de historico com `FlatList`; cores distintas compra (verde) / venda (vermelho)
+- [x] lista de historico com `FlatList`; cores distintas compra (verde) / venda (vermelho)
 - [x] Formatacao de valores com `Intl.NumberFormat` e datas com `date-fns` (locale `pt-BR`) em `mobile/src/utils/format.ts`
 - [x] Estados de carregamento: spinner + esqueletos; lista vazia com **Nenhuma transação encontrada.**
 - [x] `ScrollView` com `nestedScrollEnabled` para scroll com lista aninhada
@@ -209,7 +209,7 @@ crypto-exchange/
   README.md              # Visao geral e checklist consolidado
 ```
 
-## Documentacao da API (Swagger) e exemplos cURL
+## Documentacao da API (Swagger/Scalar UI) e exemplos cURL
 
 ### Links
 
