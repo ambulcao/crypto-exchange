@@ -14,6 +14,9 @@ const baseURL = process.env.EXPO_PUBLIC_API_URL ?? getDefaultBaseUrl();
 export const api = axios.create({
   baseURL,
   timeout: 10000,
+  headers: {
+    Accept: 'application/json',
+  },
 });
 
 export const setAuthToken = (token: string | null) => {

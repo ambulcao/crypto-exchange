@@ -68,6 +68,23 @@ class AuthFlowTest extends TestCase
         ]);
     }
 
+    public function test_login_rejects_unknown_or_invalid_credentials(): void
+    {
+        User::factory()->create([
+            'email' => 'alice@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            'email' => 'naoexiste@example.com',
+            'password' => 'qualquersenha',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'Credenciais invalidas.')
+            ->assertJsonValidationErrors('email');
+    }
+
     public function test_me_returns_authenticated_user(): void
     {
         $user = User::factory()->create();

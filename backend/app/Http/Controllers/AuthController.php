@@ -7,7 +7,6 @@ use App\Models\Wallet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
@@ -63,9 +62,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /**
-     * @throws ValidationException
-     */
     #[OA\Post(
         path: '/api/login',
         summary: 'Realiza login com email e senha',
@@ -91,9 +87,12 @@ class AuthController extends Controller
         ]);
 
         if (! Auth::attempt($credentials)) {
-            throw ValidationException::withMessages([
-                'email' => ['Credenciais invalidas.'],
-            ]);
+            return response()->json([
+                'message' => 'Credenciais invalidas.',
+                'errors' => [
+                    'email' => ['Credenciais invalidas.'],
+                ],
+            ], 422);
         }
 
         /** @var User $user */
