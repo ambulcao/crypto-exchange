@@ -27,7 +27,7 @@ export default function App() {
 }
 
 const RootScreen = () => {
-  const { isAuthenticated, isLoading, signOut, token, loginWithEmail, registerWithEmail } = useAuth();
+  const { isAuthenticated, isLoading, signOut, loginWithEmail, registerWithEmail } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -459,8 +459,6 @@ const RootScreen = () => {
                 <Text className="font-semibold text-white">Sair</Text>
               </Pressable>
             </View>
-
-            <Text className="text-center text-xs text-gray-500">Token: {token ?? 'nenhum'}</Text>
           </>
         ) : (
           <View className="w-full max-w-[380px] gap-2.5">
