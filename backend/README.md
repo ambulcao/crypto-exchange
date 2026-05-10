@@ -1,6 +1,6 @@
 # Backend — Crypto Exchange
 
-API Laravel do monorepo. O **objetivo do teste tecnico** e a visao geral do produto estao apenas no [`README.md` da raiz](../README.md) (nao duplicamos esse bloco aqui).
+API Laravel. O **objetivo** e a visao geral do produto estao apenas no [`README.md` da raiz](../README.md).
 
 **Documentacao estrategica (instalacao Docker/Sail, arquitetura transacional, Redis, decimal, Swagger e cURL):** tudo consolidado no [`README.md` da raiz](../README.md).
 
@@ -85,7 +85,7 @@ Arquivo `tests/Feature/TradeTest.php` (integracao HTTP + base de dados):
 
 | Cenario | O que valida |
 |---------|----------------|
-| **A** | Sem saldo BRL suficiente -> **422**; **wallet inalterada** e **nenhuma** linha em `transactions` (atomicidade na rejeicao) |
+| **A** | Sem saldo BRL suficiente -> **422**; **wallet inalterada** e **nenhuma** linha em `transactions` |
 | **B** | Compra ok -> saldos na tabela `wallets` e registo em `transactions` coerentes com o preco fixo em cache (`btc_price`) |
 | **C** | Duas compras HTTP consecutivas; a segunda falha com **422** apos a primeira consumir o saldo (comportamento esperado com `lockForUpdate` por operacao) |
 

@@ -8,7 +8,7 @@ Plataforma de trading (mini Binance) com backend em Laravel e aplicativo mobile 
 |------|--------|-------------------|
 | **Raiz** | `README.md` | Objetivo, stack, guia Docker/Sail, **arquitetura**, **diferenciais**, secao **decimal(16,8) e concorrencia**, **Swagger + cURL**, status, scripts |
 | **Backend** | [`backend/README.md`](backend/README.md) | Versoes PHP/Laravel/Sanctum, **status Fases 1–3**, tabela de rotas `/api`, Sail, testes, OpenAPI |
-| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4 / Dia 3**, Expo, Axios, troubleshooting |
+| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4**, Expo, Axios, troubleshooting |
 
 O bloco **Objetivo do teste tecnico** (abaixo) e intencionalmente **so na raiz** — nao repete-se em `backend/README.md` nem em `mobile/README.md`.
 

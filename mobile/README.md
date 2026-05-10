@@ -1,6 +1,6 @@
 # Mobile (frontend) — Crypto Exchange
 
-App **React Native (Expo)** do monorepo. O **objetivo do teste tecnico** e a visao geral do produto estao no [`README.md` da raiz](../README.md).
+App **React Native (Expo)**. O **objetivo** e a visao geral do produto estao no [`README.md` da raiz](../README.md).
 
 ## Stack (versoes)
 
@@ -39,9 +39,9 @@ Formatacao monetaria: **`Intl.NumberFormat`** (sem pacote extra de i18n so para 
 - [x] Ordem correta de hooks no `RootScreen`
 - [x] Dashboard: carteira + preco BTC
 - [x] Historico: `GET /api/transactions` com refresh manual; componentes `TransactionHistoryList` + `TransactionListItem` (`src/components/`)
-- [x] **Dia 3 — Fase 1:** `FlatList` no historico; cores compra (verde) / venda (vermelho)
+- [x] `FlatList` no historico; cores compra (verde) / venda (vermelho)
 - [x] `mobile/src/utils/format.ts`: `Intl` + **date-fns** (`pt-BR`)
-- [x] Loading: spinner + esqueletos; estado vazio com mensagem fixa no app (Dia 3)
+- [x] Loading: spinner + esqueletos; estado vazio com mensagem fixa no app
 - [x] `ScrollView` com `nestedScrollEnabled` para lista aninhada
 
 Contrato da API (rotas, Sanctum): [`backend/README.md`](../backend/README.md).
