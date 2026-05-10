@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 
 import { TransactionHistoryList } from './src/components/TransactionHistoryList';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
@@ -42,13 +43,8 @@ const RootScreen = () => {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [transactionsError, setTransactionsError] = useState<string | null>(null);
-  const modeTitle = useMemo(
-    () =>
-      mode === 'login'
-        ? 'Bem-vindo de volta! Use seu email e senha para continuar.'
-        : 'Preencha os dados abaixo para criar sua conta.',
-    [mode]
-  );
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   const loadWallet = async () => {
     if (!isAuthenticated) {
@@ -419,26 +415,18 @@ const RootScreen = () => {
           </>
         ) : (
           <View className="w-full max-w-[380px] gap-2.5">
-            <View className="flex-row gap-2">
-              <Pressable
-                className={`flex-1 items-center rounded-lg border py-2 ${
-                  mode === 'login' ? 'border-gray-900 bg-gray-100' : 'border-gray-300 bg-white'
-                }`}
-                onPress={() => setMode('login')}
-              >
-                <Text className="font-semibold text-gray-900">Login</Text>
-              </Pressable>
-              <Pressable
-                className={`flex-1 items-center rounded-lg border py-2 ${
-                  mode === 'register' ? 'border-gray-900 bg-gray-100' : 'border-gray-300 bg-white'
-                }`}
-                onPress={() => setMode('register')}
-              >
-                <Text className="font-semibold text-gray-900">Registro</Text>
-              </Pressable>
-            </View>
-
-            <Text className="text-center text-sm leading-5 text-gray-700">{modeTitle}</Text>
+            {mode === 'login' ? (
+              <View className="items-center gap-0.5 px-1">
+                <Text className="text-center text-base font-semibold text-gray-900">Bem-vindo de volta!</Text>
+                <Text className="text-center text-sm leading-5 text-gray-700">
+                  Use seu email e senha para continuar.
+                </Text>
+              </View>
+            ) : (
+              <Text className="text-center text-sm leading-5 text-gray-700">
+                Preencha os dados abaixo para criar sua conta.
+              </Text>
+            )}
 
             {mode === 'register' && (
               <TextInput
@@ -458,23 +446,53 @@ const RootScreen = () => {
               autoCapitalize="none"
               keyboardType="email-address"
             />
-            <TextInput
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2.5"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Senha"
-              secureTextEntry
-            />
+            <View className="w-full flex-row items-center rounded-lg border border-gray-300 bg-white">
+              <TextInput
+                className="min-h-[44px] flex-1 px-3 py-2.5 pr-2"
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Senha"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+              />
+              <Pressable
+                accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                className="px-2 py-2"
+                hitSlop={8}
+                onPress={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? (
+                  <EyeOff size={22} color="#6b7280" strokeWidth={2} />
+                ) : (
+                  <Eye size={22} color="#6b7280" strokeWidth={2} />
+                )}
+              </Pressable>
+            </View>
 
             {mode === 'register' && (
               <>
-                <TextInput
-                  className="rounded-lg border border-gray-300 bg-white px-3 py-2.5"
-                  value={passwordConfirmation}
-                  onChangeText={setPasswordConfirmation}
-                  placeholder="Confirmar senha"
-                  secureTextEntry
-                />
+                <View className="w-full flex-row items-center rounded-lg border border-gray-300 bg-white">
+                  <TextInput
+                    className="min-h-[44px] flex-1 px-3 py-2.5 pr-2"
+                    value={passwordConfirmation}
+                    onChangeText={setPasswordConfirmation}
+                    placeholder="Confirmar senha"
+                    secureTextEntry={!showPasswordConfirm}
+                    autoCapitalize="none"
+                  />
+                  <Pressable
+                    accessibilityLabel={showPasswordConfirm ? 'Ocultar confirmacao de senha' : 'Mostrar confirmacao de senha'}
+                    className="px-2 py-2"
+                    hitSlop={8}
+                    onPress={() => setShowPasswordConfirm((prev) => !prev)}
+                  >
+                    {showPasswordConfirm ? (
+                      <EyeOff size={22} color="#6b7280" strokeWidth={2} />
+                    ) : (
+                      <Eye size={22} color="#6b7280" strokeWidth={2} />
+                    )}
+                  </Pressable>
+                </View>
                 <Pressable className="flex-row items-center gap-2" onPress={() => setAcceptedTerms((prev) => !prev)}>
                   <View
                     className={`h-[18px] w-[18px] rounded border border-gray-600 ${
@@ -487,6 +505,25 @@ const RootScreen = () => {
             )}
 
             {formError ? <Text className="text-[13px] text-red-800">{formError}</Text> : null}
+
+            <View className="flex-row gap-2">
+              <Pressable
+                className={`flex-1 items-center rounded-lg border py-2 ${
+                  mode === 'login' ? 'border-gray-900 bg-gray-100' : 'border-gray-300 bg-white'
+                }`}
+                onPress={() => setMode('login')}
+              >
+                <Text className="font-semibold text-gray-900">Login</Text>
+              </Pressable>
+              <Pressable
+                className={`flex-1 items-center rounded-lg border py-2 ${
+                  mode === 'register' ? 'border-gray-900 bg-gray-100' : 'border-gray-300 bg-white'
+                }`}
+                onPress={() => setMode('register')}
+              >
+                <Text className="font-semibold text-gray-900">Registro</Text>
+              </Pressable>
+            </View>
 
             <Pressable
               className={`items-center rounded-lg bg-gray-900 px-4 py-2.5 ${loadingAction ? 'opacity-70' : ''}`}
