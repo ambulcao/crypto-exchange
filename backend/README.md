@@ -2,6 +2,8 @@
 
 API Laravel do monorepo. O **objetivo do teste tecnico** e a visao geral do produto estao apenas no [`README.md` da raiz](../README.md) (nao duplicamos esse bloco aqui).
 
+**Documentacao estrategica (instalacao Docker/Sail, arquitetura transacional, Redis, decimal, Swagger e cURL):** tudo consolidado no [`README.md` da raiz](../README.md).
+
 ## Stack (versoes)
 
 Valores alinhados ao `composer.json` do projeto.
@@ -77,7 +79,7 @@ cd backend
 ./vendor/bin/sail test
 ```
 
-### Testes de regra de negocio — trade (Dia 3)
+### Testes de regra de negocio — trade 
 
 Arquivo `tests/Feature/TradeTest.php` (integracao HTTP + base de dados):
 
