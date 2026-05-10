@@ -7,15 +7,12 @@ type Props = {
   loading?: boolean;
 };
 
-/**
- * Barra empilhada: parte em BRL na carteira vs valor estimado do BTC em BRL (cotacao atual).
- */
 export function WalletBalanceChart({ balanceBrl, balanceBtc, btcPriceBrl, loading }: Props) {
   if (loading) {
     return (
       <View className="items-center justify-center py-6">
         <ActivityIndicator />
-        <Text className="mt-2 text-sm text-gray-600">Carregando grafico...</Text>
+        <Text className="mt-2 text-sm text-gray-600">Carregando gráfico...</Text>
       </View>
     );
   }
@@ -29,7 +26,7 @@ export function WalletBalanceChart({ balanceBrl, balanceBtc, btcPriceBrl, loadin
   if (btc > 0 && px <= 0) {
     return (
       <Text className="text-center text-sm leading-5 text-gray-600">
-        Voce tem BTC na carteira. Abra a aba Negociacao para carregar a cotacao e o grafico mostrar o valor estimado em
+        Você tem BTC na carteira. Abra a aba Negociação para carregar a cotação e o gráfico mostrar o valor estimado em
         BRL.
       </Text>
     );
@@ -38,7 +35,7 @@ export function WalletBalanceChart({ balanceBrl, balanceBtc, btcPriceBrl, loadin
   if (total <= 0) {
     return (
       <Text className="text-center text-sm text-gray-600">
-        Sem saldo para exibir. Deposite ou negocie para ver a composicao.
+        Sem saldo para exibir. Deposite ou negocie para ver a composição.
       </Text>
     );
   }
@@ -49,7 +46,7 @@ export function WalletBalanceChart({ balanceBrl, balanceBtc, btcPriceBrl, loadin
   return (
     <View className="gap-3">
       <Text className="text-xs leading-4 text-gray-600">
-        Composicao estimada do patrimonio: parte em reais na carteira e BTC avaliado pela cotacao atual (simulada).
+        Composição estimada do patrimônio: parte em reais na carteira e BTC avaliado pela cotação atual (simulada).
       </Text>
 
       <View className="h-10 w-full flex-row overflow-hidden rounded-xl bg-gray-100">

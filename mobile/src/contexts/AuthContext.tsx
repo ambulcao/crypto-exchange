@@ -6,6 +6,9 @@ import { api, setAuthToken } from '../services/api';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 
+/** Evita spinner infinito se AsyncStorage demorar (emulador / Fabric). */
+const HYDRATE_TIMEOUT_MS = 2000;
+
 type RegisterPayload = {
   name: string;
   email: string;
@@ -31,17 +34,38 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
+    /** Nao cancelar no cleanup do effect: em Strict Mode o primeiro mount desmonta antes de 2s e remover o timeout deixava `isLoading` preso se AsyncStorage demorar. */
+    const failSafeTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, HYDRATE_TIMEOUT_MS);
+
     const hydrate = async () => {
       try {
         const storedToken = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-        setToken(storedToken);
-        setAuthToken(storedToken);
+        if (!cancelled) {
+          setToken(storedToken);
+          setAuthToken(storedToken);
+        }
+      } catch {
+        if (!cancelled) {
+          setToken(null);
+          setAuthToken(null);
+        }
       } finally {
-        setIsLoading(false);
+        clearTimeout(failSafeTimer);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const signIn = async (nextToken: string) => {
@@ -117,21 +141,21 @@ const mapApiError = (error: unknown): Error => {
   }
 
   if (!error.response) {
-    return new Error('Falha de conexao. Verifique rede e URL da API.');
+    return new Error('Falha de conexão. Verifique rede e URL da API.');
   }
 
   const status = error.response.status;
   const data = error.response.data as { message?: string; errors?: Record<string, string[]> } | undefined;
 
   if (status === 401) {
-    return new Error('Email ou senha invalidos.');
+    return new Error('Email ou senha inválidos.');
   }
 
   if (status === 422) {
     const firstField = data?.errors ? Object.keys(data.errors)[0] : null;
     const firstError = firstField ? data?.errors?.[firstField]?.[0] : null;
-    return new Error(firstError ?? data?.message ?? 'Dados invalidos. Revise os campos.');
+    return new Error(firstError ?? data?.message ?? 'Dados inválidos. Revise os campos.');
   }
 
-  return new Error(data?.message ?? 'Erro na requisicao. Tente novamente.');
+  return new Error(data?.message ?? 'Erro na requisição. Tente novamente.');
 };

@@ -18,7 +18,7 @@ export function TransactionHistoryList({ data, loading, emptyMessage = DEFAULT_E
       <View className="gap-2">
         <View className="flex-row items-center gap-2">
           <ActivityIndicator />
-          <Text className="text-sm text-gray-600">Carregando historico...</Text>
+          <Text className="text-sm text-gray-600">Carregando histórico...</Text>
         </View>
         {[0, 1, 2].map((key) => (
           <View key={key} className="h-[72px] rounded-lg bg-gray-200 opacity-50" />

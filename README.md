@@ -8,9 +8,21 @@ Plataforma de trading (mini Binance) com backend em Laravel e aplicativo mobile 
 |------|--------|-------------------|
 | **Raiz** | `README.md` | Objetivo, stack, guia Docker/Sail, **arquitetura**, **diferenciais**, secao **decimal(16,8) e concorrencia**, **Swagger + cURL**, status, scripts |
 | **Backend** | [`backend/README.md`](backend/README.md) | Versoes PHP/Laravel/Sanctum, **status Fases 1–3**, tabela de rotas `/api`, Sail, testes, OpenAPI |
-| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **status Fase 4**, Expo, Axios, troubleshooting |
+| **Frontend (mobile)** | [`mobile/README.md`](mobile/README.md) | Versoes Expo/RN/NativeWind, **Expo Router (SDK 54)**, **status Fase 4**, Axios, troubleshooting |
 
 O bloco **Objetivo do teste tecnico** (abaixo) e intencionalmente **so na raiz** — nao repete-se em `backend/README.md` nem em `mobile/README.md`.
+
+## Screenshots do app mobile
+
+Imagens para documentacao no GitHub / leitura do monorepo. Ficheiros em [`mobile/src/assets/screenshots/`](mobile/src/assets/screenshots/) (codigo-fonte do app; uso principal aqui no README, sem ligacao aos assets nativos gerados pelo Expo em build).
+
+| Login | Registo |
+|:---:|:---:|
+| <img src="mobile/src/assets/screenshots/01-login.png" width="280" alt="Ecrã de login" /> | <img src="mobile/src/assets/screenshots/02-register.png" width="280" alt="Ecrã de registo" /> |
+| **Dashboard** | **Histórico** |
+| <img src="mobile/src/assets/screenshots/03-dashboard.png" width="280" alt="Dashboard" /> | <img src="mobile/src/assets/screenshots/04-history.png" width="280" alt="Histórico de transações" /> |
+| **Negociar — Comprar** | **Negociar — Vender** |
+| <img src="mobile/src/assets/screenshots/05-trade-buy.png" width="280" alt="Negociar compra" /> | <img src="mobile/src/assets/screenshots/06-trade-sell.png" width="280" alt="Negociar venda" /> |
 
 ## Objetivo do teste tecnico
 
@@ -30,7 +42,7 @@ Resumo alinhado a `backend/composer.json` e `mobile/package.json`. Detalhes e co
 | Camada | Tecnologias principais |
 |--------|------------------------|
 | **Backend** | PHP ^8.3, Laravel ^13, Sanctum ^4, Sail ^1.58, MySQL, Redis, PHPUnit ^12.5, L5-Swagger ^11 |
-| **Mobile** | Expo SDK ~54, React 19.1, React Native 0.81, TypeScript ~5.9, NativeWind ^4, Tailwind ^3.4, Axios ^1.16, date-fns ^4.1 |
+| **Mobile** | Expo SDK ~54, **Expo Router ~6**, React 19.1, React Native 0.81, TypeScript ~5.9, NativeWind ^4, Tailwind ^3.4, Axios ^1.16, date-fns ^4.1 |
 | **Testes (API)** | PHPUnit (Feature e Unit) |
 
 ## Arquitetura: consistencia no trade
@@ -117,7 +129,7 @@ Checklist **consolidado** (tudo o que foi entregue). O detalhe por area:
 - [x] Tela de trade com campo unico de valor e alternancia Comprar/Vender
 - [x] Bloqueio do envio quando valor > saldo BRL (compra) ou > saldo BTC (venda)
 - [x] Feedback visual de sucesso apos confirmacao do backend (alerta + mensagem em tela)
-- [x] Correcao da ordem de hooks no `RootScreen` (erro "Rendered more hooks than during the previous render")
+- [x] Correcao da ordem de hooks nos ecra-autenticados (evitar "Rendered more hooks than during the previous render"); estado global em `ExchangeContext`
 - [x] Dashboard com carteira + preco BTC
 - [x] Tela de trade (buy/sell)
 - [x] Tela de historico (`GET /api/transactions`) com refresh manual
@@ -125,6 +137,7 @@ Checklist **consolidado** (tudo o que foi entregue). O detalhe por area:
 - [x] Formatacao de valores com `Intl.NumberFormat` e datas com `date-fns` (locale `pt-BR`) em `mobile/src/utils/format.ts`
 - [x] Estados de carregamento: spinner + esqueletos; lista vazia com **Nenhuma transação encontrada.**
 - [x] `ScrollView` com `nestedScrollEnabled` para scroll com lista aninhada
+- [x] **Expo Router** (pastas `app/`, entrada `expo-router/entry`): rotas `/login`, `/dashboard`, `/trade`, `/history`; detalhes em [`technical_notes.md`](technical_notes.md)
 
 ### Testes automatizados (motor de trade)
 
@@ -144,7 +157,7 @@ Checklist **consolidado** (tudo o que foi entregue). O detalhe por area:
 
 Rotas com prefixo `/api`, Sanctum (exceto `register` / `login`). **Tabela completa e descricao:** [backend/README.md — Rotas principais da API](backend/README.md#rotas-principais-da-api-trading).
 
-O app em `mobile/` consome estes endpoints. Notas de entrevista / UX (ex.: iteracao 16): `technical_notes.md` (local; pode estar gitignored).
+O app em `mobile/` consome estes endpoints.
 
 ## Guia de instalacao (Docker / Laravel Sail)
 

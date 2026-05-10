@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -14,14 +15,22 @@ use Tests\TestCase;
  * Integracao HTTP: POST /api/trade/buy passa pelo {@see \App\Http\Controllers\TradeController}
  * e delega ao {@see \App\Services\TradeService}.
  *
- * Garante que compra sem saldo BRL suficiente falha e que a atomicidade da transacao de banco
- * nao deixa wallet nem historico alterados quando a regra de negocio rejeita a operacao.
  */
 class TradeTest extends TestCase
 {
     use RefreshDatabase;
 
     private const BTC_PRICE = '250000.00000000';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Cache::flush();
+        Http::fake([
+            'api.coingecko.com/*' => Http::response(['bitcoin' => ['brl' => 250_000]], 200),
+        ]);
+    }
 
     public function test_cenario_a_compra_sem_saldo_brl_retorna_422_e_nao_altera_wallet_nem_cria_transacao(): void
     {
@@ -32,7 +41,6 @@ class TradeTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('btc_price', self::BTC_PRICE, now()->addMinute());
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/trade/buy', [
@@ -59,15 +67,13 @@ class TradeTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('btc_price', self::BTC_PRICE, now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/buy', [
             'amount_brl' => '2500.00000000',
         ])->assertOk();
 
-        // Commit unico: saldos e linha em transactions devem estar coerentes apos sucesso.
-        $this->assertDatabaseHas('wallets', [
+      $this->assertDatabaseHas('wallets', [
             'user_id' => $user->id,
             'balance_brl' => '7500.00000000',
             'balance_btc' => '0.01000000',
@@ -91,7 +97,6 @@ class TradeTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('btc_price', self::BTC_PRICE, now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/buy', [

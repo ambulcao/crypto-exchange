@@ -14,7 +14,7 @@ class MarketController extends Controller
 
     #[OA\Get(
         path: '/api/market/btc',
-        summary: 'Retorna preco atual fake do BTC',
+        summary: 'Preco BTC em BRL (CoinGecko; fallback BTC_FALLBACK_PRICE_BRL)',
         tags: ['Market']
     )]
     #[OA\Response(

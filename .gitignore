@@ -28,6 +28,4 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
-technical_notes.md
-pre_commit.md
 

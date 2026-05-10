@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'btc' => [
+        'brl_fallback' => env('BTC_FALLBACK_PRICE_BRL', 400_000),
+    ],
+
 ];
+

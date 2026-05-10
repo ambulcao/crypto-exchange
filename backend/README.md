@@ -39,7 +39,7 @@ Testes: Feature e Unit em `backend/tests/`.
 - [x] Migrations `wallets` e `transactions` com `decimal(16,8)`
 - [x] Compra/venda com transacao atomica e `lockForUpdate` na carteira
 
-Integracao com o app: [`mobile/README.md`](../mobile/README.md).
+Integracao com o app: [`mobile/README.md`](../mobile/README.md). O cliente mobile usa **Expo Router** (SDK 54) para ecras e deep links; o contrato REST e o mesmo (prefixo `/api`).
 
 ## Escopo funcional (API)
 
@@ -59,7 +59,7 @@ Todas abaixo usam prefixo `/api`. Exceto registro e login, exigem cabecalho `Aut
 | POST | `/login` | Login e emissao de token |
 | GET | `/me` | Dados do usuario autenticado |
 | GET | `/wallet` | Saldos BRL e BTC |
-| GET | `/market/btc` | Cotacao fake (cache/Redis) |
+| GET | `/market/btc` | BTC/BRL via CoinGecko (cache ~45s); fallback `BTC_FALLBACK_PRICE_BRL` |
 | POST | `/trade/buy` | Compra de BTC |
 | POST | `/trade/sell` | Venda de BTC |
 | GET | `/transactions` | Historico de operacoes do usuario |
@@ -86,7 +86,7 @@ Arquivo `tests/Feature/TradeTest.php` (integracao HTTP + base de dados):
 | Cenario | O que valida |
 |---------|----------------|
 | **A** | Sem saldo BRL suficiente -> **422**; **wallet inalterada** e **nenhuma** linha em `transactions` |
-| **B** | Compra ok -> saldos na tabela `wallets` e registo em `transactions` coerentes com o preco fixo em cache (`btc_price`) |
+| **B** | Compra ok -> saldos na tabela `wallets` e registo em `transactions` coerentes com o preco devolvido pela cotacao (testes com HTTP fake CoinGecko) |
 | **C** | Duas compras HTTP consecutivas; a segunda falha com **422** apos a primeira consumir o saldo (comportamento esperado com `lockForUpdate` por operacao) |
 
 Outros fluxos (wallet, market, sell, historico): `tests/Feature/Trading/TradingFlowTest.php`.

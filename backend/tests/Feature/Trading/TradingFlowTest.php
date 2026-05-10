@@ -6,12 +6,23 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class TradingFlowTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Cache::flush();
+        Http::fake([
+            'api.coingecko.com/*' => Http::response(['bitcoin' => ['brl' => 250_000]], 200),
+        ]);
+    }
 
     public function test_can_get_wallet_balance(): void
     {
@@ -32,16 +43,19 @@ class TradingFlowTest extends TestCase
             ]);
     }
 
-    public function test_market_endpoint_returns_price_in_expected_range(): void
+    public function test_market_endpoint_returns_price_from_coingecko(): void
     {
+        Cache::flush();
+        Http::fake([
+            'api.coingecko.com/*' => Http::response(['bitcoin' => ['brl' => 398_123.45]], 200),
+        ]);
+
         $response = $this->getJson('/api/market/btc')
             ->assertOk()
             ->json();
 
-        $price = (float) $response['price'];
-
-        $this->assertGreaterThanOrEqual(200000, $price);
-        $this->assertLessThanOrEqual(300000, $price);
+        $this->assertSame('398123.45000000', $response['price']);
+        $this->assertSame('BTCBRL', $response['symbol']);
     }
 
     public function test_buy_fails_when_brl_balance_is_insufficient(): void
@@ -53,7 +67,6 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/buy', [
@@ -70,7 +83,6 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/buy', [
@@ -101,7 +113,6 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.02000000',
         ]);
 
-        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/sell', [
@@ -132,7 +143,6 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.00100000',
         ]);
 
-        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/sell', [
@@ -149,7 +159,6 @@ class TradingFlowTest extends TestCase
             'balance_btc' => '0.00000000',
         ]);
 
-        Cache::put('btc_price', '250000.00000000', now()->addMinute());
         Sanctum::actingAs($user);
 
         $this->postJson('/api/trade/buy', [
