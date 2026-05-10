@@ -43,7 +43,10 @@ const RootScreen = () => {
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [transactionsError, setTransactionsError] = useState<string | null>(null);
   const modeTitle = useMemo(
-    () => (mode === 'login' ? 'Entrar na conta' : 'Criar nova conta'),
+    () =>
+      mode === 'login'
+        ? 'Bem-vindo de volta! Use seu email e senha para continuar.'
+        : 'Preencha os dados abaixo para criar sua conta.',
     [mode]
   );
 
@@ -257,13 +260,22 @@ const RootScreen = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white" nestedScrollEnabled>
-      <View className="flex-grow items-center justify-center gap-3 px-5 py-6">
+    <ScrollView
+      className="flex-1 bg-white"
+      nestedScrollEnabled
+      contentContainerStyle={
+        isAuthenticated ? { paddingBottom: 32 } : { flexGrow: 1, justifyContent: 'center' }
+      }
+      keyboardShouldPersistTaps="handled"
+    >
+      <View className="items-center gap-3 px-5 py-6">
         <Text className="text-[22px] font-semibold text-gray-900">Crypto Exchange</Text>
 
         {isAuthenticated ? (
           <>
-            <Text className="text-sm text-gray-700">Sessao autenticada com Sanctum.</Text>
+            <Text className="text-center text-sm text-gray-700">
+              Voce esta conectado com seguranca. Acompanhe sua carteira e o mercado abaixo.
+            </Text>
             <View className="w-full max-w-[380px] gap-1.5 rounded-[10px] border border-gray-200 p-3">
               <Text className="font-bold text-gray-900">Saldo da Wallet</Text>
 
@@ -426,7 +438,7 @@ const RootScreen = () => {
               </Pressable>
             </View>
 
-            <Text className="text-sm text-gray-700">{modeTitle}</Text>
+            <Text className="text-center text-sm leading-5 text-gray-700">{modeTitle}</Text>
 
             {mode === 'register' && (
               <TextInput
