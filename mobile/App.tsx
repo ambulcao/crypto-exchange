@@ -2,14 +2,21 @@ import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { ArrowLeftRight, Eye, EyeOff, LayoutDashboard } from 'lucide-react-native';
 
 import { TransactionHistoryList } from './src/components/TransactionHistoryList';
+import { BtcMarketVsHoldingsLineChart } from './src/components/BtcMarketVsHoldingsLineChart';
+import { WalletBalanceChart } from './src/components/WalletBalanceChart';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { api } from './src/services/api';
 import type { TransactionRow } from './src/components/transactionTypes';
 
 const BTC_POLLING_INTERVAL_MS = 15000;
+
+const COLOR_TRADE_BUY = '#4287f5';
+const COLOR_TRADE_SELL = '#bf3d4a';
+const COLOR_REFRESH_QUOTE = '#d1c5c6';
+const COLOR_WALLET_BALANCE = '#7cd980';
 
 export default function App() {
   return (
@@ -45,6 +52,7 @@ const RootScreen = () => {
   const [transactionsError, setTransactionsError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [mainTab, setMainTab] = useState<'dashboard' | 'trade'>('dashboard');
 
   const loadWallet = async () => {
     if (!isAuthenticated) {
@@ -126,6 +134,7 @@ const RootScreen = () => {
       setTradeAmount('');
       setTradeFeedback(null);
       setTradeError(null);
+      setMainTab('dashboard');
       return;
     }
 
@@ -269,11 +278,10 @@ const RootScreen = () => {
 
         {isAuthenticated ? (
           <>
-            <Text className="text-center text-sm text-gray-700">
-              Voce esta conectado com seguranca. Acompanhe sua carteira e o mercado abaixo.
-            </Text>
-            <View className="w-full max-w-[380px] gap-1.5 rounded-[10px] border border-gray-200 p-3">
-              <Text className="font-bold text-gray-900">Saldo da Wallet</Text>
+            <Text className="text-center text-sm text-gray-700">Acompanhe sua carteira e o mercado abaixo.</Text>
+
+            <View className="w-full max-w-[380px] gap-2 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-gray-500">Saldo da wallet</Text>
 
               {walletLoading ? (
                 <View className="flex-row items-center gap-2">
@@ -281,137 +289,252 @@ const RootScreen = () => {
                   <Text className="text-sm text-gray-600">Carregando saldos...</Text>
                 </View>
               ) : (
-                <>
-                  <Text className="text-[15px] text-gray-900">BRL: {wallet?.balance_brl ?? '--'}</Text>
-                  <Text className="text-[15px] text-gray-900">BTC: {wallet?.balance_btc ?? '--'}</Text>
-                </>
+                <View className="gap-1.5">
+                  <Text className="text-lg font-semibold" style={{ color: COLOR_WALLET_BALANCE }}>
+                    BRL disponivel: {wallet?.balance_brl ?? '--'}
+                  </Text>
+                  <Text className="text-base font-semibold" style={{ color: COLOR_WALLET_BALANCE }}>
+                    BTC disponivel: {wallet?.balance_btc ?? '--'}
+                  </Text>
+                </View>
               )}
+
+              <Text className="text-xs leading-4 text-gray-600">
+                Use estes valores ao comprar (BRL) ou vender (BTC).
+              </Text>
+
+              <BtcMarketVsHoldingsLineChart
+                btcPriceBrl={marketPrice?.price}
+                balanceBtc={wallet?.balance_btc}
+                loadingMarket={marketLoading}
+              />
 
               {walletError ? <Text className="text-[13px] text-red-800">{walletError}</Text> : null}
             </View>
 
-            <View className="w-full max-w-[380px] gap-1.5 rounded-[10px] border border-gray-200 p-3">
-              <Text className="font-bold text-gray-900">Mercado BTC</Text>
-
-              {marketLoading ? (
-                <View className="flex-row items-center gap-2">
-                  <ActivityIndicator />
-                  <Text className="text-sm text-gray-600">Carregando cotacao...</Text>
+            {mainTab === 'dashboard' ? (
+              <>
+                <View className="w-full max-w-[380px] gap-3 rounded-[10px] border border-gray-200 p-3">
+                  <Text className="font-bold text-gray-900">Seu patrimonio</Text>
+                  <WalletBalanceChart
+                    balanceBrl={wallet?.balance_brl}
+                    balanceBtc={wallet?.balance_btc}
+                    btcPriceBrl={marketPrice?.price}
+                    loading={walletLoading}
+                  />
                 </View>
-              ) : (
-                <>
-                  <Text className="text-[15px] text-gray-900">Par: {marketPrice?.symbol ?? '--'}</Text>
-                  <Text className="text-[15px] text-gray-900">
-                    Preco: {marketPrice?.price ?? '--'} {marketPrice?.currency ?? ''}
+
+                <View className="w-full max-w-[380px] gap-1.5 rounded-[10px] border border-gray-200 p-3">
+                  <Text className="font-bold text-gray-900">Historico de transacoes</Text>
+                  <TransactionHistoryList data={transactions} loading={transactionsLoading} />
+                  {transactionsError ? <Text className="text-[13px] text-red-800">{transactionsError}</Text> : null}
+                </View>
+              </>
+            ) : (
+              <>
+                {/*
+                <View className="w-full max-w-[380px] gap-2 rounded-[10px] border border-gray-200 p-3">
+                  <Text className="font-bold text-gray-900">Saldo para negociar</Text>
+                  <Text className="text-sm text-gray-600">
+                    Use estes valores ao comprar (BRL) ou vender (BTC).
                   </Text>
-                  <Text className="text-sm text-gray-600">Atualizacao automatica a cada 15s.</Text>
-                </>
-              )}
+                  {walletLoading ? (
+                    <ActivityIndicator />
+                  ) : (
+                    <>
+                      <Text className="text-[15px] text-gray-900">BRL disponivel: {wallet?.balance_brl ?? '--'}</Text>
+                      <Text className="text-[15px] text-gray-900">BTC disponivel: {wallet?.balance_btc ?? '--'}</Text>
+                    </>
+                  )}
+                </View>
+                */}
 
-              <Pressable
-                className="mt-1 items-center rounded-lg border border-gray-900 py-2"
-                onPress={() => void loadMarketPrice(true)}
-                disabled={marketLoading}
-              >
-                <Text className="font-semibold text-gray-900">Atualizar cotacao</Text>
-              </Pressable>
+                <View className="w-full max-w-[380px] gap-2 rounded-[10px] border border-gray-200 p-3">
+                  <Text className="font-bold text-gray-900">Mercado BTC</Text>
+                  <Text className="text-xs leading-4 text-gray-600">
+                    O codigo <Text className="font-semibold text-gray-800">{marketPrice?.symbol ?? 'BTCBRL'}</Text> e o par
+                    de negociacao: cotacao de 1 Bitcoin em Reais brasileiros (quanto de BRL equivale a 1 BTC neste app
+                    simulado).
+                  </Text>
 
-              {marketError ? <Text className="text-[13px] text-red-800">{marketError}</Text> : null}
-            </View>
+                  {marketLoading ? (
+                    <View className="flex-row items-center gap-2">
+                      <ActivityIndicator />
+                      <Text className="text-sm text-gray-600">Carregando cotacao...</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <Text className="text-[15px] font-medium" style={{ color: COLOR_TRADE_BUY }}>
+                        Cotacao: {marketPrice?.price ?? '--'} {marketPrice?.currency ?? 'BRL'} por 1 BTC
+                      </Text>
+                      <Text className="text-sm text-gray-600">Atualizacao automatica a cada 15s.</Text>
+                    </>
+                  )}
 
-            <View className="w-full max-w-[380px] gap-1.5 rounded-[10px] border border-gray-200 p-3">
-              <Text className="font-bold text-gray-900">Negociacao</Text>
-
-              <View className="flex-row gap-2">
-                <Pressable
-                  className={`flex-1 items-center rounded-lg border py-2 ${
-                    tradeSide === 'buy' ? 'border-gray-900 bg-gray-100' : 'border-gray-300 bg-white'
-                  }`}
-                  onPress={() => setTradeSide('buy')}
-                >
-                  <Text className="font-semibold text-gray-900">Comprar</Text>
-                </Pressable>
-                <Pressable
-                  className={`flex-1 items-center rounded-lg border py-2 ${
-                    tradeSide === 'sell' ? 'border-gray-900 bg-gray-100' : 'border-gray-300 bg-white'
-                  }`}
-                  onPress={() => setTradeSide('sell')}
-                >
-                  <Text className="font-semibold text-gray-900">Vender</Text>
-                </Pressable>
-              </View>
-
-              <Text className="text-sm text-gray-600">
-                {tradeSide === 'buy' ? 'Valor da compra (BRL)' : 'Valor da venda (BTC)'}
-              </Text>
-              <TextInput
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2.5"
-                value={tradeAmount}
-                onChangeText={setTradeAmount}
-                placeholder={tradeSide === 'buy' ? 'Ex: 2500.00000000' : 'Ex: 0.01000000'}
-                keyboardType="decimal-pad"
-              />
-
-              <Pressable
-                className={`items-center rounded-lg px-4 py-2.5 ${
-                  tradeSide === 'buy' ? 'bg-gray-900' : 'border border-gray-900 bg-transparent'
-                } ${!canSubmitTrade ? 'opacity-50' : ''}`}
-                onPress={() => void onSubmitTrade()}
-                disabled={!canSubmitTrade}
-              >
-                {tradeLoading === tradeSide ? (
-                  <ActivityIndicator color={tradeSide === 'buy' ? '#fff' : '#111827'} />
-                ) : (
-                  <Text
-                    className={`font-semibold ${tradeSide === 'buy' ? 'text-white' : 'text-gray-900'}`}
+                  <Pressable
+                    className="mt-1 items-center rounded-lg py-2.5"
+                    style={{ backgroundColor: COLOR_REFRESH_QUOTE }}
+                    onPress={() => void loadMarketPrice(true)}
+                    disabled={marketLoading}
                   >
-                    {tradeSide === 'buy' ? 'Comprar' : 'Vender'}
+                    <Text className="font-semibold text-gray-900">Atualizar cotacao</Text>
+                  </Pressable>
+
+                  {marketError ? <Text className="text-[13px] text-red-800">{marketError}</Text> : null}
+                </View>
+
+                <View className="w-full max-w-[380px] gap-1.5 rounded-[10px] border border-gray-200 p-3">
+                  <Text className="font-bold text-gray-900">Negociacao</Text>
+
+                  <View className="flex-row gap-2">
+                    <Pressable
+                      className="flex-1 items-center rounded-lg border py-2.5"
+                      style={
+                        tradeSide === 'buy'
+                          ? { backgroundColor: COLOR_TRADE_BUY, borderColor: COLOR_TRADE_BUY }
+                          : { backgroundColor: '#fff', borderColor: '#d1d5db' }
+                      }
+                      onPress={() => setTradeSide('buy')}
+                    >
+                      <Text
+                        className="font-semibold"
+                        style={{ color: tradeSide === 'buy' ? '#fff' : '#374151' }}
+                      >
+                        Comprar
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      className="flex-1 items-center rounded-lg border py-2.5"
+                      style={
+                        tradeSide === 'sell'
+                          ? { backgroundColor: COLOR_TRADE_SELL, borderColor: COLOR_TRADE_SELL }
+                          : { backgroundColor: '#fff', borderColor: '#d1d5db' }
+                      }
+                      onPress={() => setTradeSide('sell')}
+                    >
+                      <Text
+                        className="font-semibold"
+                        style={{ color: tradeSide === 'sell' ? '#fff' : '#374151' }}
+                      >
+                        Vender
+                      </Text>
+                    </Pressable>
+                  </View>
+
+                  <Text className="text-sm text-gray-600">
+                    {tradeSide === 'buy' ? 'Valor da compra (BRL)' : 'Valor da venda (BTC)'}
                   </Text>
-                )}
-              </Pressable>
+                  <TextInput
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2.5"
+                    value={tradeAmount}
+                    onChangeText={setTradeAmount}
+                    placeholder={tradeSide === 'buy' ? 'Ex: 2500.00000000' : 'Ex: 0.01000000'}
+                    keyboardType="decimal-pad"
+                  />
 
-              {tradeExceedsBalance ? (
-                <Text className="text-[13px] text-red-800">
-                  {tradeSide === 'buy'
-                    ? 'Valor maior que o saldo BRL disponivel.'
-                    : 'Valor maior que o saldo BTC disponivel.'}
+                  <Pressable
+                    className={`items-center rounded-lg px-4 py-3 ${!canSubmitTrade ? 'opacity-50' : ''}`}
+                    style={{
+                      backgroundColor: tradeSide === 'buy' ? COLOR_TRADE_BUY : COLOR_TRADE_SELL,
+                    }}
+                    onPress={() => void onSubmitTrade()}
+                    disabled={!canSubmitTrade}
+                  >
+                    {tradeLoading === tradeSide ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text className="font-semibold text-white">
+                        {tradeSide === 'buy' ? 'Comprar' : 'Vender'}
+                      </Text>
+                    )}
+                  </Pressable>
+
+                  {tradeExceedsBalance ? (
+                    <Text className="text-[13px] text-red-800">
+                      {tradeSide === 'buy'
+                        ? 'Valor maior que o saldo BRL disponivel.'
+                        : 'Valor maior que o saldo BTC disponivel.'}
+                    </Text>
+                  ) : null}
+
+                  {tradeFeedback ? <Text className="text-[13px] text-green-800">{tradeFeedback}</Text> : null}
+                  {tradeError ? <Text className="text-[13px] text-red-800">{tradeError}</Text> : null}
+                </View>
+
+                <View className="w-full max-w-[380px] flex-row flex-wrap gap-2">
+                  <Pressable
+                    className="min-w-[140px] flex-1 items-center rounded-lg border border-gray-900 py-2.5"
+                    onPress={() => void loadWallet()}
+                    disabled={walletLoading}
+                  >
+                    <Text className="font-semibold text-gray-900">Atualizar saldo</Text>
+                  </Pressable>
+                  <Pressable
+                    className="min-w-[140px] flex-1 items-center rounded-lg border border-gray-900 py-2.5"
+                    onPress={() => void loadTransactions(true)}
+                    disabled={transactionsLoading}
+                  >
+                    <Text className="font-semibold text-gray-900">Atualizar historico</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
+
+            <View className="mt-2 w-full max-w-[380px] flex-row justify-center gap-3 rounded-2xl border border-gray-200 bg-white p-2">
+              <Pressable
+                accessibilityLabel="Ir para inicio"
+                accessibilityRole="button"
+                className={`flex-1 items-center rounded-xl py-3 ${
+                  mainTab === 'dashboard' ? 'bg-gray-900' : 'bg-transparent'
+                }`}
+                onPress={() => setMainTab('dashboard')}
+              >
+                <LayoutDashboard
+                  size={26}
+                  color={mainTab === 'dashboard' ? '#ffffff' : '#111827'}
+                  strokeWidth={2}
+                />
+                <Text
+                  className={`mt-1 text-center text-[11px] font-medium ${
+                    mainTab === 'dashboard' ? 'text-white' : 'text-gray-600'
+                  }`}
+                >
+                  Inicio
                 </Text>
-              ) : null}
-
-              {tradeFeedback ? <Text className="text-[13px] text-green-800">{tradeFeedback}</Text> : null}
-              {tradeError ? <Text className="text-[13px] text-red-800">{tradeError}</Text> : null}
-            </View>
-
-            <View className="w-full max-w-[380px] gap-1.5 rounded-[10px] border border-gray-200 p-3">
-              <Text className="font-bold text-gray-900">Historico de transacoes</Text>
-
-              <TransactionHistoryList data={transactions} loading={transactionsLoading} />
-
-              {transactionsError ? <Text className="text-[13px] text-red-800">{transactionsError}</Text> : null}
-            </View>
-
-            <View className="w-full max-w-[380px] flex-row flex-wrap gap-2.5">
-              <Pressable
-                className="min-w-[140px] flex-1 items-center rounded-lg border border-gray-900 py-2.5"
-                onPress={() => void loadWallet()}
-                disabled={walletLoading}
-              >
-                <Text className="font-semibold text-gray-900">Atualizar saldo</Text>
               </Pressable>
               <Pressable
-                className="min-w-[140px] flex-1 items-center rounded-lg border border-gray-900 py-2.5"
-                onPress={() => void loadTransactions(true)}
-                disabled={transactionsLoading}
+                accessibilityLabel="Ir para negociacao"
+                accessibilityRole="button"
+                className={`flex-1 items-center rounded-xl py-3 ${
+                  mainTab === 'trade' ? 'bg-gray-900' : 'bg-transparent'
+                }`}
+                onPress={() => setMainTab('trade')}
               >
-                <Text className="font-semibold text-gray-900">Atualizar historico</Text>
-              </Pressable>
-              <Pressable
-                className="min-w-[140px] flex-1 items-center rounded-lg bg-gray-900 py-2.5"
-                onPress={() => void signOut()}
-              >
-                <Text className="font-semibold text-white">Sair</Text>
+                <ArrowLeftRight
+                  size={26}
+                  color={mainTab === 'trade' ? '#ffffff' : '#111827'}
+                  strokeWidth={2}
+                />
+                <Text
+                  className={`mt-1 text-center text-[11px] font-medium ${
+                    mainTab === 'trade' ? 'text-white' : 'text-gray-600'
+                  }`}
+                >
+                  Negociar
+                </Text>
               </Pressable>
             </View>
+
+            <Pressable
+              accessibilityRole="button"
+              className="mt-3 self-center rounded-full border border-gray-300 px-8 py-3.5"
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? '#e8eef9' : '#ffffff',
+              })}
+              onPress={() => void signOut()}
+            >
+              <Text className="text-base font-semibold text-gray-800">Sair da conta</Text>
+            </Pressable>
           </>
         ) : (
           <View className="w-full max-w-[380px] gap-2.5">
